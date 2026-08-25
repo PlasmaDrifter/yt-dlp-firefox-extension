@@ -1,0 +1,12 @@
+[Unit]
+Description=yt-dlp WebExtension Backend Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/jmc/Source/yt-dlp@localhost/server.py
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

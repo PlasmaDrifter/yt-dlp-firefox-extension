@@ -37,32 +37,11 @@ A lightweight Firefox / Gecko WebExtension and local bridge server that enables 
 
 ---
 
-## Quick Start & Installation
+## Installation & Setup
 
-### Option 1: Automated One-Line Install (Recommended)
+### Step 1: Install System Dependencies
+Ensure `yt-dlp`, `ffmpeg`, and `python3` are installed on your system:
 
-1. Clone this repository:
-   ```bash
-   git clone git@github.com:PlasmaDrifter/yt-dlp-firefox-extension.git ~/Source/yt-dlp-firefox-extension
-   cd ~/Source/yt-dlp-firefox-extension
-   ```
-
-2. Run the installer script:
-   ```bash
-   chmod +x install.sh
-   ./install.sh
-   ```
-
-3. Install the browser extension in Firefox / Zen:
-   * Navigate to `about:addons` in your browser.
-   * Click the gear icon at the top right and choose **"Install Add-on From File..."**.
-   * Select `releases/yt-dlp-extension-v1.0.2.xpi`.
-
----
-
-### Option 2: Manual Setup
-
-#### Step 1: Install Dependencies
 * **Arch Linux / Omarchy**:
   ```bash
   sudo pacman -S yt-dlp ffmpeg python3
@@ -76,9 +55,21 @@ A lightweight Firefox / Gecko WebExtension and local bridge server that enables 
   sudo apt update && sudo apt install yt-dlp ffmpeg python3
   ```
 
-#### Step 2: Enable the Background Service
-Enable the local bridge server as a user-level systemd service so it runs automatically on login/boot:
+---
 
+### Step 2: Set Up the Local Bridge Server
+The bridge server listens on `http://127.0.0.1:16800` and executes `yt-dlp` when requested by the extension.
+
+#### Option A: Automatic Installer
+Run the provided installer script to set up and enable the background service:
+```bash
+git clone git@github.com:PlasmaDrifter/yt-dlp-firefox-extension.git ~/Source/yt-dlp-firefox-extension
+cd ~/Source/yt-dlp-firefox-extension
+chmod +x install.sh
+./install.sh
+```
+
+#### Option B: Manual Service Setup
 ```bash
 mkdir -p ~/.config/systemd/user/
 cp bridge/yt-dlp-server.service ~/.config/systemd/user/
@@ -86,14 +77,35 @@ systemctl --user daemon-reload
 systemctl --user enable --now yt-dlp-server.service
 ```
 
-Verify the service is running:
+Verify that the service is active:
 ```bash
 systemctl --user status yt-dlp-server.service
+curl http://127.0.0.1:16800/health
 ```
 
-#### Step 3: Load the Extension
-* **Permanent Installation**: Go to `about:addons` -> Gear Icon -> **"Install Add-on From File..."** -> select `releases/yt-dlp-extension-v1.0.2.xpi`.
-* **Developer / Temporary Mode**: Go to `about:debugging#/runtime/this-firefox` -> Click **"Load Temporary Add-on..."** -> Select `extension/manifest.json`.
+---
+
+### Step 3: Install the Extension in Firefox / Zen
+
+Choose one of the following methods to install the extension in your browser:
+
+#### Method 1: Install from the Packaged XPI File (Permanent)
+1. Open your browser and navigate to `about:addons`.
+2. Click the **gear icon** at the top right of the page.
+3. Select **"Install Add-on From File..."**.
+4. Choose the file:
+   ```text
+   releases/yt-dlp-extension-v1.0.2.xpi
+   ```
+5. Confirm the permission prompt to complete the installation.
+
+#### Method 2: Load the Extracted / Unpacked Extension (Developer Mode)
+1. Open your browser and navigate to `about:debugging#/runtime/this-firefox`.
+2. Click **"Load Temporary Add-on..."**.
+3. Select the `manifest.json` file inside either:
+   * `extracted-xpi/manifest.json`
+   * or `extension/manifest.json`
+4. The extension will load immediately with full debugging access.
 
 ---
 
@@ -102,25 +114,25 @@ systemctl --user status yt-dlp-server.service
 1. Navigate to any supported video page (YouTube, Twitch, Twitter/X, Reddit, Vimeo, TikTok, etc.).
 2. **Right-click** on the video or video link.
 3. Click **"Download video with yt-dlp"** in the context menu.
-4. You will see a desktop notification confirming the download has started.
-5. The downloaded video will appear directly in your **`~/Downloads`** folder.
+4. A desktop notification will confirm that the download has started.
+5. The downloaded video will be saved directly into your **`~/Downloads`** folder.
 
 ---
 
 ## Customization & Configuration
 
-Because the extension triggers your local `yt-dlp` binary, all preferences in **[`~/.config/yt-dlp/config`](file:///home/jmc/.config/yt-dlp/config)** are respected automatically.
+The extension triggers your system's `yt-dlp` binary, which automatically reads all settings from **[`~/.config/yt-dlp/config`](file:///home/jmc/.config/yt-dlp/config)**.
 
 ### Example `~/.config/yt-dlp/config`:
 ```text
-# Save location
+# Default download directory
 -P ~/Downloads/
 
-# Best video and audio merged into MP4
+# Best quality video and audio merged into MP4
 -f "bv*+ba/b"
 --merge-output-format mp4
 
-# Embed metadata
+# Embed metadata and subtitles
 --embed-metadata
 
 # (Optional) Cookies file for private or age-restricted videos
@@ -133,29 +145,35 @@ Because the extension triggers your local `yt-dlp` binary, all preferences in **
 
 ```
 yt-dlp-firefox-extension/
-├── README.md               # Documentation and guide
+├── README.md               # Complete documentation and setup guide
 ├── LICENSE                 # MIT License
-├── install.sh              # Automated setup and installer script
-├── extension/              # WebExtension source code
-│   ├── manifest.json       # Extension manifest (v2 / gecko)
-│   ├── background.js       # Background context menu handler
+├── install.sh              # Automated systemd installer script
+├── extracted-xpi/          # Extracted contents of the .xpi archive
+│   ├── manifest.json       # Extension manifest
+│   ├── background.js       # Background service script
+│   ├── server.py           # Python bridge server
+│   ├── yt-dlp-server.service # Systemd unit file
 │   └── icons/              # Extension icons (16, 32, 48, 64, 128)
-├── bridge/                 # Local HTTP bridge servers
-│   ├── server.py           # Zero-dependency lightweight Python server
-│   ├── server.js           # Express.js Node.js server alternative
-│   ├── yt-dlp-cli.sh       # CLI script with native notifications
-│   └── yt-dlp-server.service # Systemd user service unit
-└── releases/               # Packaged extension releases
-    ├── yt-dlp-extension-v1.0.2.xpi  # Firefox add-on file
-    └── yt-dlp-extension-v1.0.2.zip  # AMO submission archive
+├── extension/              # WebExtension source code
+│   ├── manifest.json
+│   ├── background.js
+│   └── icons/
+├── bridge/                 # Local bridge servers and CLI wrappers
+│   ├── server.py           # Lightweight Python HTTP bridge
+│   ├── server.js           # Node.js Express bridge alternative
+│   ├── yt-dlp-cli.sh       # CLI execution script with notifications
+│   └── yt-dlp-server.service # Systemd user service definition
+└── releases/               # Prebuilt extension packages
+    ├── yt-dlp-extension-v1.0.2.xpi  # Packaged add-on for Firefox/Zen
+    └── yt-dlp-extension-v1.0.2.zip  # Add-on archive
 ```
 
 ---
 
 ## Troubleshooting
 
-### 1. "Failed to fetch" or no download starts
-* Ensure the local bridge service is active:
+### 1. "Failed to fetch" error or downloads not triggering
+* Verify that the local bridge server is running:
   ```bash
   systemctl --user status yt-dlp-server.service
   ```
@@ -163,10 +181,10 @@ yt-dlp-firefox-extension/
   ```bash
   curl http://127.0.0.1:16800/health
   ```
-  *(Should return `{"status":"ok","service":"yt-dlp-bridge"}`)*
+  *(Expected output: `{"status":"ok","service":"yt-dlp-bridge"}`)*
 
-### 2. View Service Logs
-To see real-time download logs:
+### 2. Check Service Logs
+To inspect live download output and errors:
 ```bash
 journalctl --user -u yt-dlp-server.service -f
 ```
