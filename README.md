@@ -4,40 +4,40 @@ A lightweight Firefox / Gecko WebExtension and local bridge server that enables 
 
 ---
 
-## 🌟 Features
+## Features
 
 * **Context Menu Integration**: Right-click on any video, link, or media element and select **"Download video with yt-dlp"**.
 * **Zero Browser Overhead**: Downloads run in the background via `yt-dlp` without slowing down or locking up your browser.
 * **Desktop Notifications**: Real-time native desktop notifications when a download starts and completes.
-* **Full `yt-dlp` Power**: Automatically inherits your custom `~/.config/yt-dlp/config` (cookies, download folders, audio extraction, video quality formats, metadata, and subtitles).
+* **Full yt-dlp Power**: Automatically inherits your custom `~/.config/yt-dlp/config` (cookies, download folders, audio extraction, video quality formats, metadata, and subtitles).
 * **Multi-Platform Linux Support**: Works seamlessly on Arch Linux / Omarchy, Fedora, Debian/Ubuntu, and any standard Linux distribution.
 * **Gecko Browser Support**: Compatible with Firefox, Zen Browser, Floorp, LibreWolf, and Waterfox.
 
 ---
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ```
-┌──────────────────────────────────────┐
-│  Firefox / Zen Browser               │
-│  (WebExtension: background.js)       │
-└──────────────────┬───────────────────┘
-                   │ HTTP POST (http://127.0.0.1:16800/download)
-                   ▼
-┌──────────────────────────────────────┐
-│  Local Bridge Server (server.py)     │  <── Enabled via systemd user service
-└──────────────────┬───────────────────┘
-                   │ Spawns
-                   ▼
-┌──────────────────────────────────────┐
-│  yt-dlp CLI Process                  │  <── Reads ~/.config/yt-dlp/config
-│  + notify-send Desktop Alerts        │  <── Saves videos to ~/Downloads
-└──────────────────────────────────────┘
++--------------------------------------+
+|  Firefox / Zen Browser               |
+|  (WebExtension: background.js)       |
++------------------+-------------------+
+                   | HTTP POST (http://127.0.0.1:16800/download)
+                   v
++--------------------------------------+
+|  Local Bridge Server (server.py)     |  <-- Enabled via systemd user service
++------------------+-------------------+
+                   | Spawns
+                   v
++--------------------------------------+
+|  yt-dlp CLI Process                  |  <-- Reads ~/.config/yt-dlp/config
+|  + notify-send Desktop Alerts        |  <-- Saves videos to ~/Downloads
++--------------------------------------+
 ```
 
 ---
 
-## 🚀 Quick Start & Installation
+## Quick Start & Installation
 
 ### Option 1: Automated One-Line Install (Recommended)
 
@@ -55,7 +55,7 @@ A lightweight Firefox / Gecko WebExtension and local bridge server that enables 
 
 3. Install the browser extension in Firefox / Zen:
    * Navigate to `about:addons` in your browser.
-   * Click the **⚙️ gear icon** at the top right and choose **"Install Add-on From File..."**.
+   * Click the gear icon at the top right and choose **"Install Add-on From File..."**.
    * Select `releases/yt-dlp-extension-v1.0.2.xpi`.
 
 ---
@@ -92,12 +92,12 @@ systemctl --user status yt-dlp-server.service
 ```
 
 #### Step 3: Load the Extension
-* **Permanent Installation**: Go to `about:addons` -> ⚙️ -> **"Install Add-on From File..."** -> select `releases/yt-dlp-extension-v1.0.2.xpi`.
+* **Permanent Installation**: Go to `about:addons` -> Gear Icon -> **"Install Add-on From File..."** -> select `releases/yt-dlp-extension-v1.0.2.xpi`.
 * **Developer / Temporary Mode**: Go to `about:debugging#/runtime/this-firefox` -> Click **"Load Temporary Add-on..."** -> Select `extension/manifest.json`.
 
 ---
 
-## 📖 How to Use
+## How to Use
 
 1. Navigate to any supported video page (YouTube, Twitch, Twitter/X, Reddit, Vimeo, TikTok, etc.).
 2. **Right-click** on the video or video link.
@@ -107,9 +107,9 @@ systemctl --user status yt-dlp-server.service
 
 ---
 
-## ⚙️ Customization & Configuration
+## Customization & Configuration
 
-Because the extension triggers your local `yt-dlp` binary, all preferences in **[`~/.config/yt-dlp/config`](file:///home/jmc/.config/yt-dlp/config)** are respected automatically!
+Because the extension triggers your local `yt-dlp` binary, all preferences in **[`~/.config/yt-dlp/config`](file:///home/jmc/.config/yt-dlp/config)** are respected automatically.
 
 ### Example `~/.config/yt-dlp/config`:
 ```text
@@ -129,13 +129,13 @@ Because the extension triggers your local `yt-dlp` binary, all preferences in **
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 yt-dlp-firefox-extension/
-├── README.md               # Documentation & guide
+├── README.md               # Documentation and guide
 ├── LICENSE                 # MIT License
-├── install.sh              # Automated setup & installer script
+├── install.sh              # Automated setup and installer script
 ├── extension/              # WebExtension source code
 │   ├── manifest.json       # Extension manifest (v2 / gecko)
 │   ├── background.js       # Background context menu handler
@@ -152,7 +152,7 @@ yt-dlp-firefox-extension/
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### 1. "Failed to fetch" or no download starts
 * Ensure the local bridge service is active:
@@ -173,5 +173,5 @@ journalctl --user -u yt-dlp-server.service -f
 
 ---
 
-## 📄 License
+## License
 This project is licensed under the [MIT License](LICENSE).
