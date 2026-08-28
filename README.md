@@ -89,23 +89,33 @@ curl http://127.0.0.1:16800/health
 
 Choose one of the following methods to install the extension in your browser:
 
-#### Method 1: Install from the Packaged XPI File (Permanent)
-1. Open your browser and navigate to `about:addons`.
-2. Click the **gear icon** at the top right of the page.
-3. Select **"Install Add-on From File..."**.
-4. Choose the file:
-   ```text
-   releases/yt-dlp-extension-v1.0.2.xpi
-   ```
-5. Confirm the permission prompt to complete the installation.
+#### Method 1: Install from Firefox Add-ons (Recommended)
+Install the official signed version directly from Mozilla Add-ons:
+👉 **[Download with yt-dlp on Firefox Add-ons (AMO)](https://addons.mozilla.org/en-US/firefox/addon/download-with-yt-dlp-local/)**
 
-#### Method 2: Load the Extracted / Unpacked Extension (Developer Mode)
+> [!TIP]
+> Using the official AMO link is the easiest and most permanent method for standard Firefox, as it is signed by Mozilla and updates automatically.
+
+---
+
+#### Method 2: Install from Local XPI File
+If you prefer installing directly from a local file without using AMO:
+1. Open your browser and navigate to `about:addons`.
+2. Click the **gear icon** (⚙️) at the top right of the page.
+3. Select **"Install Add-on From File..."** and choose `releases/yt-dlp-extension-v1.0.2.xpi`.
+
+> [!IMPORTANT]
+> **Signature Requirement:** Standard Firefox releases enforce mandatory add-on signing. If you install an unsigned local `.xpi` file directly on standard Firefox, you will see a signature verification error. To use unsigned `.xpi` files permanently, use **Firefox Developer Edition**, **Firefox Nightly**, **Firefox ESR**, or **LibreWolf** and disable signature checking:
+> 1. Open `about:config`.
+> 2. Set `xpinstall.signatures.required` to `false`.
+
+---
+
+#### Method 3: Load Temporarily in Developer Mode
 1. Open your browser and navigate to `about:debugging#/runtime/this-firefox`.
 2. Click **"Load Temporary Add-on..."**.
-3. Select the `manifest.json` file inside either:
-   * `extracted-xpi/manifest.json`
-   * or `extension/manifest.json`
-4. The extension will load immediately with full debugging access.
+3. Select the `manifest.json` file inside `extension/manifest.json`.
+4. The extension will load immediately for your current browser session.
 
 ---
 

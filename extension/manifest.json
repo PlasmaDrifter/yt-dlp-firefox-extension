@@ -22,7 +22,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "yt-dlp@localhost",
+      "id": "{87f9e1a1-0b13-4906-93a2-d45bb696be6f}",
       "data_collection_permissions": {
         "required": [
           "none"
