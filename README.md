@@ -42,7 +42,7 @@ A lightweight Firefox / Gecko WebExtension and local bridge server that enables 
 ### Step 1: Install System Dependencies
 Ensure `yt-dlp`, `ffmpeg`, and `python3` are installed on your system:
 
-* **Arch Linux / Omarchy**:
+* **Arch Linux**:
   ```bash
   sudo pacman -S yt-dlp ffmpeg python3
   ```
