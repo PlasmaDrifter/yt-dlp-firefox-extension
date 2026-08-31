@@ -1,7 +1,11 @@
 browser.contextMenus.create({
     id: "yt-dlp-download",
     title: "Download video with yt-dlp",
-    contexts: ["link", "video"]
+    contexts: ["link", "video"],
+    icons: {
+        "16": "icons/icon-16.png",
+        "32": "icons/icon-32.png"
+    }
 });
 
 browser.contextMenus.onClicked.addListener((info, tab) => {

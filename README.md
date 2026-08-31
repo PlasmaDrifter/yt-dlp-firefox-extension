@@ -102,12 +102,12 @@ Install the official signed version directly from Mozilla Add-ons:
 If you prefer installing directly from a local file without using AMO:
 1. Open your browser and navigate to `about:addons`.
 2. Click the **gear icon** at the top right of the page.
-3. Select **"Install Add-on From File..."** and choose `releases/yt-dlp-extension-v1.0.2.xpi`.
+3. Select **"Install Add-on From File..."** and choose `releases/yt-dlp-extension-v1.0.3.zip`.
 
 > [!IMPORTANT]
-> **Signature Requirement:** Standard Firefox releases enforce mandatory add-on signing. If you install an unsigned local `.xpi` file directly on standard Firefox, you will see a signature verification error. To use unsigned `.xpi` files permanently, use **Firefox Developer Edition**, **Firefox Nightly**, **Firefox ESR**, or **LibreWolf** and disable signature checking:
-> 1. Open `about:config`.
-> 2. Set `xpinstall.signatures.required` to `false`.
+> **Signature Requirement:** Standard Firefox releases enforce mandatory add-on signing. If you install an unsigned local `.zip`/`.xpi` file directly on standard Firefox, you will see a signature verification error. To use unsigned files permanently, use **Firefox Developer Edition**, **Firefox Nightly**, **Firefox ESR**, or **LibreWolf** and disable signature checking:
+1. Open `about:config`.
+2. Set `xpinstall.signatures.required` to `false`.
 
 ---
 
@@ -158,7 +158,7 @@ yt-dlp-firefox-extension/
 ├── README.md               # Complete documentation and setup guide
 ├── LICENSE                 # MIT License
 ├── install.sh              # Automated systemd installer script
-├── extracted-xpi/          # Extracted contents of the .xpi archive
+├── extracted-xpi/          # Extracted contents of the add-on
 │   ├── manifest.json       # Extension manifest
 │   ├── background.js       # Background service script
 │   ├── server.py           # Python bridge server
@@ -174,8 +174,7 @@ yt-dlp-firefox-extension/
 │   ├── yt-dlp-cli.sh       # CLI execution script with notifications
 │   └── yt-dlp-server.service # Systemd user service definition
 └── releases/               # Prebuilt extension packages
-    ├── yt-dlp-extension-v1.0.2.xpi  # Packaged add-on for Firefox/Zen
-    └── yt-dlp-extension-v1.0.2.zip  # Add-on archive
+    └── yt-dlp-extension-v1.0.3.zip  # Add-on archive for AMO upload
 ```
 
 ---
