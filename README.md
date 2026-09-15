@@ -131,7 +131,7 @@ If you prefer installing directly from a local file without using AMO:
 
 ## Customization & Configuration
 
-The extension triggers your system's `yt-dlp` binary, which automatically reads all settings from **[`~/.config/yt-dlp/config`](file:///home/jmc/.config/yt-dlp/config)**.
+The extension triggers your system's `yt-dlp` binary, which automatically reads all settings from **`~/.config/yt-dlp/config`**.
 
 ### Example `~/.config/yt-dlp/config`:
 ```text

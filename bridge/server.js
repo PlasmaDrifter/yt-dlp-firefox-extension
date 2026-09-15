@@ -1,6 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
+const os = require('os');
+const path = require('path');
+const fs = require('fs');
+
 const app = express();
 const port = 16800;
 
@@ -23,14 +27,31 @@ app.post('/download', (req, res) => {
 
     console.log(`[yt-dlp-bridge] Downloading: ${url}`);
 
-    // Run yt-dlp script in background
-    exec(`/home/jmc/Scripts/yt-dlp-cli.sh "${url}"`, (err, stdout, stderr) => {
-        if (err) {
-            console.error('[yt-dlp-bridge] Error:', stderr || err);
-            return;
-        }
-        console.log('[yt-dlp-bridge] Output:', stdout);
-    });
+    // Resolve script path dynamically
+    const homeScript = path.join(os.homedir(), 'Scripts', 'yt-dlp-cli.sh');
+    const localScript = path.join(__dirname, 'yt-dlp-cli.sh');
+
+    let scriptPath = null;
+    if (fs.existsSync(homeScript)) {
+        scriptPath = homeScript;
+    } else if (fs.existsSync(localScript)) {
+        scriptPath = localScript;
+    }
+
+    if (scriptPath) {
+        exec(`"${scriptPath}" "${url}"`, (err, stdout, stderr) => {
+            if (err) {
+                console.error('[yt-dlp-bridge] Error:', stderr || err);
+                return;
+            }
+            console.log('[yt-dlp-bridge] Output:', stdout);
+        });
+    } else {
+        // Fallback: spawn yt-dlp directly into ~/Downloads
+        const downloadDir = path.join(os.homedir(), 'Downloads');
+        const proc = spawn('yt-dlp', ['-P', downloadDir, url], { detached: true, stdio: 'ignore' });
+        proc.unref();
+    }
 
     res.send('Download started');
 });

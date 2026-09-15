@@ -4,7 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /home/jmc/Source/yt-dlp@localhost/server.py
+WorkingDirectory=%h/.config/yt-dlp-extension-bridge
+ExecStart=/usr/bin/env python3 %h/.config/yt-dlp-extension-bridge/server.py
 Restart=on-failure
 RestartSec=5s
 

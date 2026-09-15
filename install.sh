@@ -33,9 +33,11 @@ fi
 echo "[2/3] Installing bridge server and background service..."
 mkdir -p "$HOME/Scripts/yt-dlp-extension-bridge" "$HOME/.config/systemd/user"
 
+cp "$REPO_DIR/bridge/server.py" "$HOME/Scripts/yt-dlp-extension-bridge/" 2>/dev/null || true
 cp "$REPO_DIR/bridge/server.js" "$HOME/Scripts/yt-dlp-extension-bridge/" 2>/dev/null || true
 cp "$REPO_DIR/bridge/package.json" "$HOME/Scripts/yt-dlp-extension-bridge/" 2>/dev/null || true
 cp "$REPO_DIR/bridge/yt-dlp-cli.sh" "$HOME/Scripts/"
+cp "$REPO_DIR/bridge/yt-dlp-cli.sh" "$HOME/Scripts/yt-dlp-extension-bridge/" 2>/dev/null || true
 chmod +x "$HOME/Scripts/yt-dlp-cli.sh"
 
 # Install systemd service
