@@ -28,11 +28,17 @@ app.post('/download', (req, res) => {
     console.log(`[yt-dlp-bridge] Downloading: ${url}`);
 
     // Resolve script path dynamically
+    const xdgScript = path.join(os.homedir(), '.local', 'share', 'yt-dlp-bridge', 'yt-dlp-cli.sh');
+    const localBinScript = path.join(os.homedir(), '.local', 'bin', 'yt-dlp-cli.sh');
     const homeScript = path.join(os.homedir(), 'Scripts', 'yt-dlp-cli.sh');
     const localScript = path.join(__dirname, 'yt-dlp-cli.sh');
 
     let scriptPath = null;
-    if (fs.existsSync(homeScript)) {
+    if (fs.existsSync(xdgScript)) {
+        scriptPath = xdgScript;
+    } else if (fs.existsSync(localBinScript)) {
+        scriptPath = localBinScript;
+    } else if (fs.existsSync(homeScript)) {
         scriptPath = homeScript;
     } else if (fs.existsSync(localScript)) {
         scriptPath = localScript;

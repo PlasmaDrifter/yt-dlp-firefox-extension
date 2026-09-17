@@ -53,7 +53,9 @@ To have the server run automatically when you log into Linux, run the installer:
 
 Or configure manually:
 ```bash
-mkdir -p ~/.config/systemd/user/
+mkdir -p ~/.local/share/yt-dlp-bridge ~/.config/systemd/user
+cp bridge/server.py bridge/yt-dlp-cli.sh ~/.local/share/yt-dlp-bridge/
+chmod +x ~/.local/share/yt-dlp-bridge/yt-dlp-cli.sh ~/.local/share/yt-dlp-bridge/server.py
 cp bridge/yt-dlp-server.service ~/.config/systemd/user/
 systemctl --user daemon-reload
 systemctl --user enable --now yt-dlp-server

@@ -2,6 +2,7 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INSTALL_DIR="$HOME/.local/share/yt-dlp-bridge"
 
 echo "====================================================="
 echo "   Download with yt-dlp - Installer & Setup          "
@@ -10,7 +11,7 @@ echo "====================================================="
 # Check dependencies
 echo "[1/3] Checking system dependencies..."
 missing_deps=()
-for cmd in yt-dlp ffmpeg; do
+for cmd in yt-dlp ffmpeg python3; do
   if ! command -v "$cmd" &>/dev/null; then
     missing_deps+=("$cmd")
   fi
@@ -29,18 +30,20 @@ if (( ${#missing_deps[@]} > 0 )); then
   fi
 fi
 
-# Set up local bridge script
-echo "[2/3] Installing bridge server and background service..."
-mkdir -p "$HOME/Scripts/yt-dlp-extension-bridge" "$HOME/.config/systemd/user"
+# Set up local bridge script in standard XDG user directory
+echo "[2/3] Installing bridge server files..."
+mkdir -p "$INSTALL_DIR" "$HOME/.config/systemd/user" "$HOME/.local/bin"
 
-cp "$REPO_DIR/bridge/server.py" "$HOME/Scripts/yt-dlp-extension-bridge/" 2>/dev/null || true
-cp "$REPO_DIR/bridge/server.js" "$HOME/Scripts/yt-dlp-extension-bridge/" 2>/dev/null || true
-cp "$REPO_DIR/bridge/package.json" "$HOME/Scripts/yt-dlp-extension-bridge/" 2>/dev/null || true
-cp "$REPO_DIR/bridge/yt-dlp-cli.sh" "$HOME/Scripts/"
-cp "$REPO_DIR/bridge/yt-dlp-cli.sh" "$HOME/Scripts/yt-dlp-extension-bridge/" 2>/dev/null || true
-chmod +x "$HOME/Scripts/yt-dlp-cli.sh"
+cp "$REPO_DIR/bridge/server.py" "$INSTALL_DIR/"
+cp "$REPO_DIR/bridge/server.js" "$INSTALL_DIR/" 2>/dev/null || true
+cp "$REPO_DIR/bridge/package.json" "$INSTALL_DIR/" 2>/dev/null || true
+cp "$REPO_DIR/bridge/yt-dlp-cli.sh" "$INSTALL_DIR/"
+chmod +x "$INSTALL_DIR/yt-dlp-cli.sh" "$INSTALL_DIR/server.py"
 
-# Install systemd service
+# Also link yt-dlp-cli.sh to ~/.local/bin for convenience
+ln -sf "$INSTALL_DIR/yt-dlp-cli.sh" "$HOME/.local/bin/yt-dlp-cli.sh"
+
+# Install systemd user service
 cat <<EOF > "$HOME/.config/systemd/user/yt-dlp-server.service"
 [Unit]
 Description=Local yt-dlp Firefox Extension Bridge Server
@@ -48,8 +51,8 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=$REPO_DIR/bridge
-ExecStart=$(which python3) $REPO_DIR/bridge/server.py
+WorkingDirectory=%h/.local/share/yt-dlp-bridge
+ExecStart=/usr/bin/env python3 %h/.local/share/yt-dlp-bridge/server.py
 Restart=always
 RestartSec=3
 
@@ -74,8 +77,7 @@ echo "   Setup Complete!                                   "
 echo "====================================================="
 echo ""
 echo "Next: Install the extension in Firefox / Zen:"
-echo "1. Open 'about:addons' in your browser."
-echo "2. Click the gear icon and select 'Install Add-on From File...'."
-echo "3. Choose: $REPO_DIR/releases/yt-dlp-extension-v1.0.3.zip"
+echo "• Install from AMO (Recommended): https://addons.mozilla.org/en-US/firefox/addon/download-with-yt-dlp-local/"
+echo "• Or install locally from file: $REPO_DIR/releases/yt-dlp-extension-v1.0.3.zip"
 echo ""
 echo "Videos will automatically download to ~/Downloads"

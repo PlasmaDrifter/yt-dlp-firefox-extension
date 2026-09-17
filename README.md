@@ -60,18 +60,21 @@ Ensure `yt-dlp`, `ffmpeg`, and `python3` are installed on your system:
 ### Step 2: Set Up the Local Bridge Server
 The bridge server listens on `http://127.0.0.1:16800` and executes `yt-dlp` when requested by the extension.
 
-#### Option A: Automatic Installer
+#### Option A: Automatic Installer (Recommended)
 Run the provided installer script to set up and enable the background service:
 ```bash
-git clone git@github.com:PlasmaDrifter/yt-dlp-firefox-extension.git ~/Source/yt-dlp-firefox-extension
-cd ~/Source/yt-dlp-firefox-extension
+git clone https://github.com/PlasmaDrifter/yt-dlp-firefox-extension.git
+cd yt-dlp-firefox-extension
 chmod +x install.sh
 ./install.sh
 ```
 
 #### Option B: Manual Service Setup
+If you prefer configuring the service manually without the installer:
 ```bash
-mkdir -p ~/.config/systemd/user/
+mkdir -p ~/.local/share/yt-dlp-bridge ~/.config/systemd/user
+cp bridge/server.py bridge/yt-dlp-cli.sh ~/.local/share/yt-dlp-bridge/
+chmod +x ~/.local/share/yt-dlp-bridge/yt-dlp-cli.sh ~/.local/share/yt-dlp-bridge/server.py
 cp bridge/yt-dlp-server.service ~/.config/systemd/user/
 systemctl --user daemon-reload
 systemctl --user enable --now yt-dlp-server.service
