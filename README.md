@@ -207,3 +207,11 @@ journalctl --user -u yt-dlp-server.service -f
 
 ## License
 This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## 💬 Community & Discussions
+
+Got questions, setup ideas, or feedback?
+
+* 🌐 Join our subreddit at [**r/PlasmaDrifterProjects**](https://reddit.com/r/PlasmaDrifterProjects) to discuss updates, get support, and share configurations.
