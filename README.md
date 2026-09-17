@@ -1,27 +1,11 @@
 # Download with yt-dlp (Firefox Extension & Local Bridge)
 
-<!-- ==================== STYLE TEST OPTIONS ==================== -->
-### 🧪 Option 3 Test: Top Navigation Bar
-[**Community Subreddit (r/PlasmaDrifterProjects)**](https://reddit.com/r/PlasmaDrifterProjects) • [**Features**](#features) • [**Installation**](#installation--setup) • [**Issues**](https://github.com/PlasmaDrifter/yt-dlp-firefox-extension/issues)
-
----
-
-### 🧪 Option 2 Test: Large Isolated Badge
-[![Join Community](https://img.shields.io/badge/Join_Community-r%2FPlasmaDrifterProjects-FF4500?style=for-the-badge&logo=reddit&logoColor=white)](https://reddit.com/r/PlasmaDrifterProjects)
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![Browser Support](https://img.shields.io/badge/Browser-Firefox%20%7C%20Zen%20%7C%20LibreWolf-FF7139?style=flat-square&logo=firefox-browser&logoColor=white)](https://mozilla.org)
 [![yt-dlp](https://img.shields.io/badge/CLI-yt--dlp-red?style=flat-square&logo=youtube&logoColor=white)](https://github.com/yt-dlp/yt-dlp)
 
----
-
-### 🧪 Option 1 Test: GitHub Alert Box
 > [!NOTE]
 > **Community Hub:** Have questions, custom configs, or feature ideas? Join our subreddit community at [**r/PlasmaDrifterProjects**](https://reddit.com/r/PlasmaDrifterProjects)!
-
-<!-- ============================================================ -->
-
----
 
 A lightweight Firefox / Gecko WebExtension and local bridge server that enables seamless one-click video and audio downloading directly from your browser using **[yt-dlp](https://github.com/yt-dlp/yt-dlp)**.
 
