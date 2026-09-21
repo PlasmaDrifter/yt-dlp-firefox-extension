@@ -1,6 +1,13 @@
 # Download with yt-dlp (Firefox Extension & Local Bridge)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![Browser Support](https://img.shields.io/badge/Browser-Firefox%20%7C%20Zen%20%7C%20LibreWolf-FF7139?style=flat-square&logo=firefox-browser&logoColor=white)](https://mozilla.org)
+[![yt-dlp](https://img.shields.io/badge/CLI-yt--dlp-red?style=flat-square&logo=youtube&logoColor=white)](https://github.com/yt-dlp/yt-dlp)
+
 A lightweight Firefox / Gecko WebExtension and local bridge server that enables seamless one-click video and audio downloading directly from your browser using **[yt-dlp](https://github.com/yt-dlp/yt-dlp)**.
+
+> [!NOTE]
+> **Questions, custom configs, or ideas?** Join us on Reddit at <nobr>[**r/PlasmaDrifterProjects**](https://reddit.com/r/PlasmaDrifterProjects)</nobr>!
 
 ---
 
@@ -205,3 +212,11 @@ journalctl --user -u yt-dlp-server.service -f
 
 ## License
 This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## 💬 Community & Discussions
+
+Got questions, setup ideas, or feedback?
+
+* 🌐 Join our subreddit at [**r/PlasmaDrifterProjects**](https://reddit.com/r/PlasmaDrifterProjects) to discuss updates, get support, and share configurations.
