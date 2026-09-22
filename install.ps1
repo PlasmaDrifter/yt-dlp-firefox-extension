@@ -200,7 +200,7 @@ Write-Host "=====================================================" -ForegroundCo
 Write-Host ""
 Write-Host "Next: Install the extension in Firefox / Zen / LibreWolf / Waterfox:"
 Write-Host "- Install from AMO (Recommended): https://addons.mozilla.org/en-US/firefox/addon/download-with-yt-dlp-local/"
-Write-Host "- Or install locally from file: $ScriptDir\releases\yt-dlp-extension-v1.0.4.zip"
+Write-Host "- Or install locally from file: $ScriptDir\releases\yt-dlp-extension-v1.0.5.zip"
 Write-Host ""
-Write-Host "Videos will automatically download to $env:USERPROFILE\Downloads"
+Write-Host "Videos will automatically download to your configured yt-dlp path (or $env:USERPROFILE\Downloads)"
 

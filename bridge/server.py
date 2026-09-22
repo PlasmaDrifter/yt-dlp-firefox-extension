@@ -3,12 +3,49 @@ import http.server
 import json
 import os
 import platform
+import re
 import subprocess
 import sys
 import urllib.parse
 
 PORT = 16800
 DOWNLOAD_DIR = os.path.expanduser("~/Downloads")
+
+def get_configured_destination():
+    """Detect destination from yt-dlp config, falling back to ~/Downloads."""
+    home = os.path.expanduser("~")
+    if platform.system() == "Windows":
+        appdata = os.environ.get("APPDATA", "")
+        userprofile = os.environ.get("USERPROFILE", home)
+        config_paths = [
+            os.path.join(appdata, "yt-dlp", "config"),
+            os.path.join(appdata, "yt-dlp", "config.txt"),
+            os.path.join(userprofile, "yt-dlp.conf"),
+            os.path.join(userprofile, "yt-dlp.conf.txt"),
+        ]
+    else:
+        config_paths = [
+            os.path.join(home, ".config", "yt-dlp", "config"),
+            os.path.join(home, ".config", "yt-dlp.conf"),
+            os.path.join(home, ".yt-dlp.conf"),
+            "/etc/yt-dlp.conf",
+        ]
+
+    for p in config_paths:
+        if p and os.path.isfile(p):
+            try:
+                with open(p, "r", encoding="utf-8", errors="ignore") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith("#") or not line:
+                            continue
+                        m = re.match(r'^(?:-P|--paths)\s+(?:(?:home|temp):)?[\"\']?([^\"\']+)[\"\']?', line)
+                        if m:
+                            return m.group(1).strip()
+            except Exception:
+                pass
+
+    return "~/Downloads" if platform.system() != "Windows" else os.path.join(os.environ.get("USERPROFILE", "~"), "Downloads")
 
 # In pythonw.exe on Windows, stdout and stderr are None. Redirect to server.log to prevent crashes in BaseHTTPRequestHandler.log_message.
 log_dir = os.path.dirname(os.path.abspath(__file__))
@@ -144,7 +181,8 @@ class YtDlpHandler(http.server.BaseHTTPRequestHandler):
             payload = json.dumps({
                 "status": "ok",
                 "service": "yt-dlp-bridge",
-                "platform": sys.platform
+                "platform": sys.platform,
+                "destination": get_configured_destination()
             }).encode("utf-8")
             self._set_headers(200, len(payload))
             self.wfile.write(payload)
@@ -194,12 +232,12 @@ class YtDlpHandler(http.server.BaseHTTPRequestHandler):
             print(f"[yt-dlp-server] Using yt-dlp binary: {ytdlp_bin}")
 
             # Spawn yt-dlp with visible output for verification
-            popen_kwargs = {}
+            popen_kwargs = {"cwd": DOWNLOAD_DIR}
             if platform.system() == "Windows":
                 popen_kwargs["shell"] = True
 
             quoted_url = f'"{valid_url}"' if platform.system() == "Windows" else valid_url
-            cmd = [ytdlp_bin, "-P", DOWNLOAD_DIR, quoted_url]
+            cmd = [ytdlp_bin, quoted_url]
             print(f"[yt-dlp-server] Running: {' '.join(cmd)}")
             proc = subprocess.Popen(cmd, **popen_kwargs)
 

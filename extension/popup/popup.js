@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detectedOsEl = document.getElementById('detected-os');
   const osBadge = document.getElementById('os-badge');
   const btnRefresh = document.getElementById('btn-refresh');
+  const destinationEl = document.getElementById('destination-val');
 
   const tipsLinux = document.getElementById('tips-linux');
   const tipsWin = document.getElementById('tips-win');
@@ -70,12 +71,20 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (data.platform.startsWith('win')) detectedOsEl.textContent = 'Windows (Bridge Active)';
           else detectedOsEl.textContent = 'Linux (Bridge Active)';
         }
+        if (destinationEl && data.destination) {
+          destinationEl.textContent = data.destination;
+          destinationEl.title = data.destination;
+        }
       } else {
         throw new Error(`Server returned HTTP ${res.status}`);
       }
     } catch (err) {
       statusCard.className = 'status-card offline';
       statusText.textContent = 'Server Offline (Disconnected)';
+      if (destinationEl) {
+        destinationEl.textContent = '~/Downloads';
+        destinationEl.title = '~/Downloads (Default)';
+      }
     } finally {
       setTimeout(() => btnRefresh.classList.remove('spinning'), 350);
     }
