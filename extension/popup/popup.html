@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download with yt-dlp</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <img src="/icons/icon-32.png" alt="Logo" class="logo">
+        <div>
+          <h1 class="title">yt-dlp Downloader</h1>
+          <span class="version" id="version-tag">v1.0.4</span>
+        </div>
+      </div>
+      <button id="btn-refresh" class="btn-icon" title="Refresh Server Status">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+          <path d="M23 4v6h-6M1 20v-6h6"></path>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Server Status Card -->
+    <section class="status-card" id="status-card">
+      <div class="status-indicator">
+        <span class="status-dot" id="status-dot"></span>
+        <span class="status-text" id="status-text">Checking server...</span>
+      </div>
+      <div class="status-details" id="status-details">
+        <div class="detail-row">
+          <span class="detail-label">Endpoint:</span>
+          <span class="detail-val">127.0.0.1:16800</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Detected OS:</span>
+          <span class="detail-val" id="detected-os">Detecting...</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Destination:</span>
+          <span class="detail-val">~/Downloads</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- OS-Specific Troubleshooting Section (Shown if server is offline or user expands) -->
+    <section class="tips-section" id="tips-section">
+      <div class="section-title-row" id="toggle-tips">
+        <span class="section-title">Troubleshooting & Fixes</span>
+        <span class="badge" id="os-badge">Linux</span>
+      </div>
+
+      <!-- Linux Tips -->
+      <div class="os-content" id="tips-linux">
+        <p class="tip-desc">If the server is offline, start the background service:</p>
+        <div class="code-box">
+          <code>systemctl --user restart yt-dlp-server</code>
+          <button class="btn-copy" data-copy="systemctl --user restart yt-dlp-server" title="Copy command">Copy</button>
+        </div>
+        <p class="tip-desc">Or check service status & logs:</p>
+        <div class="code-box">
+          <code>systemctl --user status yt-dlp-server</code>
+          <button class="btn-copy" data-copy="systemctl --user status yt-dlp-server" title="Copy command">Copy</button>
+        </div>
+      </div>
+
+
+
+      <!-- Windows Tips -->
+      <div class="os-content" id="tips-win" style="display: none;">
+        <p class="tip-desc">Run the Windows setup script in PowerShell:</p>
+        <div class="code-box">
+          <code>install.bat</code>
+          <button class="btn-copy" data-copy="install.bat" title="Copy command">Copy</button>
+        </div>
+        <p class="tip-desc">Or launch background server directly:</p>
+        <div class="code-box">
+          <code>pythonw.exe "%LOCALAPPDATA%\yt-dlp-bridge\server.py"</code>
+          <button class="btn-copy" data-copy='pythonw.exe "%LOCALAPPDATA%\yt-dlp-bridge\server.py"' title="Copy command">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer Links -->
+    <footer class="footer">
+      <a href="https://github.com/PlasmaDrifter/yt-dlp-firefox-extension" class="link-item" id="link-github">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+        <span>GitHub</span>
+      </a>
+      <span class="sep">•</span>
+      <a href="https://reddit.com/r/PlasmaDrifterProjects" class="link-item" id="link-reddit">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+          <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.197-2.512-.73a.326.326 0 0 0-.232-.095z"/>
+        </svg>
+        <span>Reddit</span>
+      </a>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

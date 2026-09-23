@@ -1,7 +1,8 @@
 # Download with yt-dlp (Firefox Extension & Local Bridge)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-[![Browser Support](https://img.shields.io/badge/Browser-Firefox%20%7C%20Zen%20%7C%20LibreWolf-FF7139?style=flat-square&logo=firefox-browser&logoColor=white)](https://mozilla.org)
+[![Browser Support](https://img.shields.io/badge/Browser-Firefox%20%7C%20Zen%20%7C%20LibreWolf%20%7C%20Floorp%20%7C%20Waterfox-FF7139?style=flat-square&logo=firefox-browser&logoColor=white)](https://mozilla.org)
+[![OS Support](https://img.shields.io/badge/OS-Linux%20%7C%20Windows-blue?style=flat-square)](https://github.com/PlasmaDrifter/yt-dlp-firefox-extension)
 [![yt-dlp](https://img.shields.io/badge/CLI-yt--dlp-red?style=flat-square&logo=youtube&logoColor=white)](https://github.com/yt-dlp/yt-dlp)
 
 A lightweight Firefox / Gecko WebExtension and local bridge server that enables seamless one-click video and audio downloading directly from your browser using **[yt-dlp](https://github.com/yt-dlp/yt-dlp)**.
@@ -14,10 +15,13 @@ A lightweight Firefox / Gecko WebExtension and local bridge server that enables 
 ## Features
 
 * **Context Menu Integration**: Right-click on any video, link, or media element and select **"Download video with yt-dlp"**.
-* **Zero Browser Overhead**: Downloads run in the background via `yt-dlp` without slowing down or locking up your browser.
-* **Desktop Notifications**: Real-time native desktop notifications when a download starts and completes.
-* **Full yt-dlp Power**: Automatically inherits your custom `~/.config/yt-dlp/config` (cookies, download folders, audio extraction, video quality formats, metadata, and subtitles).
-* **Multi-Platform Linux Support**: Works seamlessly on Arch Linux / Omarchy, Fedora, Debian/Ubuntu, and any standard Linux distribution.
+* **Zero Browser Overhead**: Downloads run asynchronously in the background via `yt-dlp` without slowing down or locking up your browser.
+* **Instant Notifications & Feedback**: Real-time native alerts across **Linux** (`notify-send`) and **Windows** (Native Toast / Balloon), plus browser notifications and a toolbar badge.
+* **Full yt-dlp Power**: Automatically inherits your custom yt-dlp configuration file (cookies, download folders, audio extraction, video quality formats, metadata, and subtitles).
+* **Background Autostart**:
+  * **Linux**: `systemd --user` service
+  * **Windows**: Silent background service (`shell:startup` via `pythonw.exe`)
+* **Toolbar Status Popup**: Real-time server health check with one-click refresh and OS-specific troubleshooting tips.
 * **Gecko Browser Support**: Compatible with Firefox, Zen Browser, Floorp, LibreWolf, and Waterfox.
 
 ---
@@ -25,50 +29,33 @@ A lightweight Firefox / Gecko WebExtension and local bridge server that enables 
 ## Architecture Overview
 
 ```
-+--------------------------------------+
-|  Firefox / Zen Browser               |
-|  (WebExtension: background.js)       |
-+------------------+-------------------+
-                   | HTTP POST (http://127.0.0.1:16800/download)
-                   v
-+--------------------------------------+
-|  Local Bridge Server (server.py)     |  <-- Enabled via systemd user service
-+------------------+-------------------+
-                   | Spawns
-                   v
-+--------------------------------------+
-|  yt-dlp CLI Process                  |  <-- Reads ~/.config/yt-dlp/config
-|  + notify-send Desktop Alerts        |  <-- Saves videos to ~/Downloads
-+--------------------------------------+
++-------------------------------------------------+
+|  Firefox / Zen / LibreWolf Browser              |
+|  (WebExtension: background.js + toolbar popup)  |
++------------------------+------------------------+
+                         | HTTP POST (http://127.0.0.1:16800/download)
+                         v
++-------------------------------------------------+
+|  Local Bridge Server (server.py)                |  <-- Autostart: systemd / Startup
++------------------------+------------------------+
+                         | Spawns
+                         v
++-------------------------------------------------+
+|  yt-dlp CLI Process                             |  <-- Reads yt-dlp config
+|  + Native Desktop Notifications                 |  <-- Saves videos to ~/Downloads
++-------------------------------------------------+
 ```
 
 ---
 
 ## Installation & Setup
 
-### Step 1: Install System Dependencies
-Ensure `yt-dlp`, `ffmpeg`, and `python3` are installed on your system:
+### Step 1: Set Up the Local Bridge Server
 
-* **Arch Linux**:
-  ```bash
-  sudo pacman -S yt-dlp ffmpeg python3
-  ```
-* **Fedora**:
-  ```bash
-  sudo dnf install yt-dlp ffmpeg python3
-  ```
-* **Ubuntu / Debian**:
-  ```bash
-  sudo apt update && sudo apt install yt-dlp ffmpeg python3
-  ```
+Choose the installer for your operating system:
 
----
-
-### Step 2: Set Up the Local Bridge Server
-The bridge server listens on `http://127.0.0.1:16800` and executes `yt-dlp` when requested by the extension.
-
-#### Option A: Automatic Installer (Recommended)
-Run the provided installer script to set up and enable the background service:
+#### 🐧 Linux
+Run the automated installer to check dependencies and enable the `systemd` user service:
 ```bash
 git clone https://github.com/PlasmaDrifter/yt-dlp-firefox-extension.git
 cd yt-dlp-firefox-extension
@@ -76,35 +63,32 @@ chmod +x install.sh
 ./install.sh
 ```
 
-#### Option B: Manual Service Setup
-If you prefer configuring the service manually without the installer:
-```bash
-mkdir -p ~/.local/share/yt-dlp-bridge ~/.config/systemd/user
-cp bridge/server.py bridge/yt-dlp-cli.sh ~/.local/share/yt-dlp-bridge/
-chmod +x ~/.local/share/yt-dlp-bridge/yt-dlp-cli.sh ~/.local/share/yt-dlp-bridge/server.py
-cp bridge/yt-dlp-server.service ~/.config/systemd/user/
-systemctl --user daemon-reload
-systemctl --user enable --now yt-dlp-server.service
+#### 🪟 Windows
+1. Clone the repository or download the ZIP from GitHub:
+```cmd
+git clone https://github.com/PlasmaDrifter/yt-dlp-firefox-extension.git
+cd yt-dlp-firefox-extension
+install.bat
 ```
+2. Simply double-click **`install.bat`**.
 
-Verify that the service is active:
-```bash
-systemctl --user status yt-dlp-server.service
-curl http://127.0.0.1:16800/health
-```
+> [!IMPORTANT]
+> **Python on Windows:**
+> - The installer will attempt to install Python 3, `yt-dlp`, and `ffmpeg` automatically using `winget`.
+> - If you install Python manually from [python.org](https://www.python.org/downloads/), **make sure to check the box: ☑️ "Add python.exe to PATH"** at the bottom of the Python installer window. Without this checkbox, Windows redirects Python commands to the Microsoft Store.
+
+To stop and remove the bridge server at any time, double-click **`uninstall.bat`**.
 
 ---
 
-### Step 3: Install the Extension in Firefox / Zen
-
-Choose one of the following methods to install the extension in your browser:
+### Step 2: Install the Extension in Firefox / Zen / Floorp / LibreWolf
 
 #### Method 1: Install from Firefox Add-ons (Recommended)
 Install the official signed version directly from Mozilla Add-ons:
 **[Download with yt-dlp on Firefox Add-ons (AMO)](https://addons.mozilla.org/en-US/firefox/addon/download-with-yt-dlp-local/)**
 
 > [!TIP]
-> Using the official AMO link is the easiest and most permanent method for standard Firefox, as it is signed by Mozilla and updates automatically.
+> Using the official AMO link is the easiest method for standard Firefox, as it is signed by Mozilla and updates automatically.
 
 ---
 
@@ -167,24 +151,22 @@ The extension triggers your system's `yt-dlp` binary, which automatically reads 
 yt-dlp-firefox-extension/
 ├── README.md               # Complete documentation and setup guide
 ├── LICENSE                 # MIT License
-├── install.sh              # Automated systemd installer script
-├── extracted-xpi/          # Extracted contents of the add-on
-│   ├── manifest.json       # Extension manifest
-│   ├── background.js       # Background service script
-│   ├── server.py           # Python bridge server
-│   ├── yt-dlp-server.service # Systemd unit file
-│   └── icons/              # Extension icons (16, 32, 48, 64, 128)
+├── install.sh              # Automated Linux installer script
+├── install.bat             # Windows one-click installer batch script
+├── install.ps1             # Windows installer PowerShell script
+├── uninstall.bat           # Windows uninstaller batch script
+├── uninstall.ps1           # Windows uninstaller PowerShell script
 ├── extension/              # WebExtension source code
-│   ├── manifest.json
-│   ├── background.js
-│   └── icons/
+│   ├── manifest.json       # Manifest V2 definition
+│   ├── background.js       # Background context menu & download trigger
+│   ├── popup/              # Toolbar status popup UI
+│   └── icons/              # Extension icons (16, 32, 48, 64, 128)
 ├── bridge/                 # Local bridge servers and CLI wrappers
 │   ├── server.py           # Lightweight Python HTTP bridge
-│   ├── server.js           # Node.js Express bridge alternative
 │   ├── yt-dlp-cli.sh       # CLI execution script with notifications
 │   └── yt-dlp-server.service # Systemd user service definition
 └── releases/               # Prebuilt extension packages
-    └── yt-dlp-extension-v1.0.3.zip  # Add-on archive for AMO upload
+    └── yt-dlp-extension-v1.0.4.zip  # Current WebExtension release package
 ```
 
 ---
