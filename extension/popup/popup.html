@@ -14,7 +14,7 @@
         <img src="/icons/icon-32.png" alt="Logo" class="logo">
         <div>
           <h1 class="title">yt-dlp Downloader</h1>
-          <span class="version" id="version-tag">v1.0.5</span>
+          <span class="version" id="version-tag">v1.0.6</span>
         </div>
       </div>
       <button id="btn-refresh" class="btn-icon" title="Refresh Server Status">
@@ -44,6 +44,31 @@
           <span class="detail-label">Destination:</span>
           <span class="detail-val" id="destination-val" title="Detecting...">Detecting...</span>
         </div>
+      </div>
+    </section>
+
+    <!-- Notification Preferences Card -->
+    <section class="settings-card">
+      <div class="settings-title">Notification Preferences</div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Browser Notification</span>
+          <span class="setting-desc">Firefox popup alert on download</span>
+        </div>
+        <label class="switch" title="Toggle Firefox browser notifications">
+          <input type="checkbox" id="toggle-browser-notify" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">System Notification</span>
+          <span class="setting-desc">OS desktop alert (notify-send / Toast)</span>
+        </div>
+        <label class="switch" title="Toggle OS desktop system notifications">
+          <input type="checkbox" id="toggle-system-notify">
+          <span class="slider"></span>
+        </label>
       </div>
     </section>
 

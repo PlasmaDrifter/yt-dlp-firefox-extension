@@ -27,7 +27,7 @@ if (browser.runtime.onStartup) {
 }
 registerContextMenu();
 
-browser.contextMenus.onClicked.addListener((info, tab) => {
+browser.contextMenus.onClicked.addListener(async (info, tab) => {
     const rawUrl = info.linkUrl || info.srcUrl || info.pageUrl || info.selectionText || (tab && tab.url);
     if (!rawUrl) {
         console.warn("No valid URL found to download.");
@@ -37,8 +37,24 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
     const url = rawUrl.trim();
     const videoTitle = (tab && tab.title) ? tab.title.replace(" - YouTube", "") : url;
 
-    // 1. Instant Extension Notification Popup
-    if (browser.notifications && browser.notifications.create) {
+    // Load notification preferences
+    let notifyBrowser = true;
+    let notifySystem = false;
+    try {
+        if (browser.storage && browser.storage.local) {
+            const prefs = await browser.storage.local.get({
+                notifyBrowser: true,
+                notifySystem: false
+            });
+            notifyBrowser = prefs.notifyBrowser !== false;
+            notifySystem = prefs.notifySystem === true;
+        }
+    } catch (e) {
+        console.warn("Could not read notification preferences:", e);
+    }
+
+    // 1. Instant Extension Notification Popup (if enabled)
+    if (notifyBrowser && browser.notifications && browser.notifications.create) {
         browser.notifications.create({
             type: "basic",
             iconUrl: "icons/icon-48.png",
@@ -59,7 +75,7 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
     fetch("http://127.0.0.1:16800/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url })
+        body: JSON.stringify({ url, notify: notifySystem })
     })
     .then(res => res.json().catch(() => res.text()))
     .then(msg => {

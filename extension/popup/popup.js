@@ -6,9 +6,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   const osBadge = document.getElementById('os-badge');
   const btnRefresh = document.getElementById('btn-refresh');
   const destinationEl = document.getElementById('destination-val');
+  const toggleBrowserNotify = document.getElementById('toggle-browser-notify');
+  const toggleSystemNotify = document.getElementById('toggle-system-notify');
 
   const tipsLinux = document.getElementById('tips-linux');
   const tipsWin = document.getElementById('tips-win');
+
+  // Load notification preferences
+  if (browserApi && browserApi.storage && browserApi.storage.local) {
+    browserApi.storage.local.get({
+      notifyBrowser: true,
+      notifySystem: false
+    }).then(items => {
+      if (toggleBrowserNotify) toggleBrowserNotify.checked = items.notifyBrowser;
+      if (toggleSystemNotify) toggleSystemNotify.checked = items.notifySystem;
+    }).catch(err => {
+      console.warn('Could not load notification preferences:', err);
+    });
+
+    if (toggleBrowserNotify) {
+      toggleBrowserNotify.addEventListener('change', () => {
+        browserApi.storage.local.set({ notifyBrowser: toggleBrowserNotify.checked });
+      });
+    }
+
+    if (toggleSystemNotify) {
+      toggleSystemNotify.addEventListener('change', () => {
+        browserApi.storage.local.set({ notifySystem: toggleSystemNotify.checked });
+      });
+    }
+  }
 
   // Detect OS using Firefox WebExtensions API
   let currentOs = 'linux';

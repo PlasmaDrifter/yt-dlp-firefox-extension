@@ -163,7 +163,7 @@ yt-dlp-firefox-extension/
 │   ├── yt-dlp-cli.sh       # CLI execution script with notifications
 │   └── yt-dlp-server.service # Systemd user service definition
 └── releases/               # Prebuilt extension packages
-    └── yt-dlp-extension-v1.0.5.zip  # Current WebExtension release package
+    └── yt-dlp-extension-v1.0.6.zip  # Current WebExtension release package
 ```
 
 ---

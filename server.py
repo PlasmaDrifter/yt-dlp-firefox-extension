@@ -207,6 +207,7 @@ class YtDlpHandler(http.server.BaseHTTPRequestHandler):
         try:
             data = json.loads(post_data.decode("utf-8"))
             url = data.get("url")
+            should_notify = data.get("notify", True)
 
             if not url or not isinstance(url, str):
                 payload = json.dumps({"error": "No URL provided"}).encode("utf-8")
@@ -241,8 +242,9 @@ class YtDlpHandler(http.server.BaseHTTPRequestHandler):
             print(f"[yt-dlp-server] Running: {' '.join(cmd)}")
             proc = subprocess.Popen(cmd, **popen_kwargs)
 
-            # Send desktop notification
-            send_notification("yt-dlp", f"Starting download: {valid_url}")
+            # Send desktop notification if enabled
+            if should_notify:
+                send_notification("yt-dlp", f"Starting download: {valid_url}")
 
             response = {"status": "success", "message": f"Downloading {valid_url}"}
             payload = json.dumps(response).encode("utf-8")
