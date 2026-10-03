@@ -319,6 +319,12 @@ input:checked + .slider:before {
   color: #93c5fd;
   overflow-x: auto;
   white-space: nowrap;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge */
+}
+
+.code-box code::-webkit-scrollbar {
+  display: none; /* Chrome / Safari / Edge */
 }
 
 .btn-copy {
