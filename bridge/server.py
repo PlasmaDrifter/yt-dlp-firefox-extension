@@ -42,7 +42,10 @@ def get_configured_destination():
                         m = re.match(r'^(?:-P|--paths)\s+(?:(?:home|temp):)?[\"\']?([^\"\']+)[\"\']?', line)
                         if m:
                             raw_path = m.group(1).strip()
-                            return os.path.expanduser(os.path.expandvars(raw_path))
+                            expanded = os.path.expanduser(os.path.expandvars(raw_path))
+                            if expanded.startswith(home):
+                                return "~" + expanded[len(home):]
+                            return expanded
             except Exception:
                 pass
 
