@@ -41,7 +41,8 @@ def get_configured_destination():
                             continue
                         m = re.match(r'^(?:-P|--paths)\s+(?:(?:home|temp):)?[\"\']?([^\"\']+)[\"\']?', line)
                         if m:
-                            return m.group(1).strip()
+                            raw_path = m.group(1).strip()
+                            return os.path.expanduser(os.path.expandvars(raw_path))
             except Exception:
                 pass
 
