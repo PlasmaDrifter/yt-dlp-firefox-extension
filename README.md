@@ -7,18 +7,23 @@
 
 A lightweight Firefox / Gecko WebExtension and local bridge server that enables seamless one-click video and audio downloading directly from your browser using **[yt-dlp](https://github.com/yt-dlp/yt-dlp)**.
 
+<p align="center">
+  <img src="assets/extension-popup-settings.png" alt="Download with yt-dlp Extension Settings and Status" width="360" />
+</p>
+
 ---
 
 ## Features
 
 * **Context Menu Integration**: Right-click on any video, link, or media element and select **"Download video with yt-dlp"**.
 * **Zero Browser Overhead**: Downloads run asynchronously in the background via `yt-dlp` without slowing down or locking up your browser.
-* **Instant Notifications & Feedback**: Real-time native alerts across **Linux** (`notify-send`) and **Windows** (Native Toast / Balloon), plus browser notifications and a toolbar badge.
+* **Granular Notification Preferences**: Choose between browser popups, system desktop notifications, both, or silent mode with toolbar badge feedback directly from the extension popup.
 * **Full yt-dlp Power**: Automatically inherits your custom yt-dlp configuration file (cookies, download folders, audio extraction, video quality formats, metadata, and subtitles).
+* **Live Destination Display**: Extension popup automatically queries the bridge server to display your active download folder.
 * **Background Autostart**:
   * **Linux**: `systemd --user` service
   * **Windows**: Silent background service (`shell:startup` via `pythonw.exe`)
-* **Toolbar Status Popup**: Real-time server health check with one-click refresh and OS-specific troubleshooting tips.
+* **Toolbar Status Popup**: Real-time server health check with one-click refresh, live destination path, notification toggles, and OS-specific troubleshooting tips.
 * **Gecko Browser Support**: Compatible with Firefox, Zen Browser, Floorp, LibreWolf, and Waterfox.
 
 ---
@@ -39,7 +44,7 @@ A lightweight Firefox / Gecko WebExtension and local bridge server that enables 
                          v
 +-------------------------------------------------+
 |  yt-dlp CLI Process                             |  <-- Reads yt-dlp config
-|  + Native Desktop Notifications                 |  <-- Saves videos to ~/Downloads
+|  + Configurable Notifications                   |  <-- Saves videos to configured path
 +-------------------------------------------------+
 ```
 
@@ -51,7 +56,7 @@ A lightweight Firefox / Gecko WebExtension and local bridge server that enables 
 
 Choose the installer for your operating system:
 
-#### 🐧 Linux
+#### Linux
 Run the automated installer to check dependencies and enable the `systemd` user service:
 ```bash
 git clone https://github.com/PlasmaDrifter/yt-dlp-firefox-extension.git
@@ -60,7 +65,7 @@ chmod +x install.sh
 ./install.sh
 ```
 
-#### 🪟 Windows
+#### Windows
 1. Clone the repository or download the ZIP from GitHub:
 ```cmd
 git clone https://github.com/PlasmaDrifter/yt-dlp-firefox-extension.git
@@ -72,7 +77,7 @@ install.bat
 > [!IMPORTANT]
 > **Python on Windows:**
 > - The installer will attempt to install Python 3, `yt-dlp`, and `ffmpeg` automatically using `winget`.
-> - If you install Python manually from [python.org](https://www.python.org/downloads/), **make sure to check the box: ☑️ "Add python.exe to PATH"** at the bottom of the Python installer window. Without this checkbox, Windows redirects Python commands to the Microsoft Store.
+> - If you install Python manually from [python.org](https://www.python.org/downloads/), **make sure to check the box: "Add python.exe to PATH"** at the bottom of the Python installer window. Without this checkbox, Windows redirects Python commands to the Microsoft Store.
 
 To stop and remove the bridge server at any time, double-click **`uninstall.bat`**.
 
@@ -93,7 +98,7 @@ Install the official signed version directly from Mozilla Add-ons:
 If you prefer installing directly from a local file without using AMO:
 1. Open your browser and navigate to `about:addons`.
 2. Click the **gear icon** at the top right of the page.
-3. Select **"Install Add-on From File..."** and choose `releases/yt-dlp-extension-v1.0.3.zip`.
+3. Select **"Install Add-on From File..."** and choose `releases/yt-dlp-extension-v1.0.6.xpi`.
 
 > [!IMPORTANT]
 > **Signature Requirement:** Standard Firefox releases enforce mandatory add-on signing. If you install an unsigned local `.zip`/`.xpi` file directly on standard Firefox, you will see a signature verification error. To use unsigned files permanently, use **Firefox Developer Edition**, **Firefox Nightly**, **Firefox ESR**, or **LibreWolf** and disable signature checking:
@@ -115,8 +120,8 @@ If you prefer installing directly from a local file without using AMO:
 1. Navigate to any supported video page (YouTube, Twitch, Twitter/X, Reddit, Vimeo, TikTok, etc.).
 2. **Right-click** on the video or video link.
 3. Click **"Download video with yt-dlp"** in the context menu.
-4. A desktop notification will confirm that the download has started.
-5. The downloaded video will be saved directly into your **`~/Downloads`** folder.
+4. An alert (browser popup or desktop toast, per your preference) and a green `DL` toolbar badge will confirm that the download has started.
+5. The downloaded video will be saved directly into your configured `yt-dlp` folder (or `~/Downloads`).
 
 ---
 
@@ -148,6 +153,8 @@ The extension triggers your system's `yt-dlp` binary, which automatically reads 
 yt-dlp-firefox-extension/
 ├── README.md               # Complete documentation and setup guide
 ├── LICENSE                 # MIT License
+├── assets/                 # Documentation screenshots and assets
+│   └── extension-popup-settings.png
 ├── install.sh              # Automated Linux installer script
 ├── install.bat             # Windows one-click installer batch script
 ├── install.ps1             # Windows installer PowerShell script
@@ -195,8 +202,8 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-## 💬 Community & Discussions
+## Community & Discussions
 
 Got questions, setup ideas, or feedback?
 
-* 🌐 Join our subreddit at [**r/PlasmaDrifterProjects**](https://reddit.com/r/PlasmaDrifterProjects) to discuss updates, get support, and share configurations.
+* Join our subreddit at [**r/PlasmaDrifterProjects**](https://reddit.com/r/PlasmaDrifterProjects) to discuss updates, get support, and share configurations.
