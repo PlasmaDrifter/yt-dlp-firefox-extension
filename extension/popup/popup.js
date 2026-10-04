@@ -239,14 +239,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
   // Active Downloads Monitoring
   async function updateActiveDownloads() {
     if (!downloadsCard || !downloadsList) return;
@@ -272,12 +264,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (visibleDownloads.length === 0) {
         downloadsCard.style.display = 'none';
-        downloadsList.innerHTML = '';
+        downloadsList.textContent = '';
         return;
       }
 
       downloadsCard.style.display = 'flex';
-      downloadsList.innerHTML = '';
+      downloadsList.textContent = '';
 
       visibleDownloads.forEach(dl => {
         const item = document.createElement('div');
@@ -311,22 +303,76 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const canCancel = dl.status === 'starting' || dl.status === 'downloading';
 
-        item.innerHTML = `
-          <div class="download-item-header">
-            <span class="download-item-title" title="${escapeHtml(dl.title || dl.url)}">${escapeHtml(dl.title || dl.url)}</span>
-            <span class="${badgeClass}">${badgeText}</span>
-          </div>
-          <div class="download-item-bar-bg">
-            <div class="download-item-bar-fill${dl.status === 'completed' ? ' completed' : ''}" style="width: ${percent}%;"></div>
-          </div>
-          <div class="download-item-footer">
-            <span>${percentText}</span>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span>${escapeHtml(statsText)}</span>
-              ${canCancel ? `<button class="btn-cancel-dl" data-id="${dl.id}">Cancel</button>` : ''}
-            </div>
-          </div>
-        `;
+        // 1. Header
+        const header = document.createElement('div');
+        header.className = 'download-item-header';
+
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'download-item-title';
+        const displayTitle = dl.title || dl.url || '';
+        titleSpan.title = displayTitle;
+        titleSpan.textContent = displayTitle;
+
+        const badgeSpan = document.createElement('span');
+        badgeSpan.className = badgeClass;
+        badgeSpan.textContent = badgeText;
+
+        header.appendChild(titleSpan);
+        header.appendChild(badgeSpan);
+
+        // 2. Bar
+        const barBg = document.createElement('div');
+        barBg.className = 'download-item-bar-bg';
+
+        const barFill = document.createElement('div');
+        barFill.className = `download-item-bar-fill${dl.status === 'completed' ? ' completed' : ''}`;
+        barFill.style.width = `${percent}%`;
+        barBg.appendChild(barFill);
+
+        // 3. Footer
+        const footer = document.createElement('div');
+        footer.className = 'download-item-footer';
+
+        const percentSpan = document.createElement('span');
+        percentSpan.textContent = percentText;
+
+        const footerRight = document.createElement('div');
+        footerRight.style.display = 'flex';
+        footerRight.style.alignItems = 'center';
+        footerRight.style.gap = '6px';
+
+        const statsSpan = document.createElement('span');
+        statsSpan.textContent = statsText;
+        footerRight.appendChild(statsSpan);
+
+        if (canCancel) {
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'btn-cancel-dl';
+          cancelBtn.setAttribute('data-id', dl.id);
+          cancelBtn.textContent = 'Cancel';
+          cancelBtn.addEventListener('click', async () => {
+            cancelBtn.disabled = true;
+            cancelBtn.textContent = '...';
+            try {
+              await fetch('http://127.0.0.1:16800/cancel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ job_id: dl.id })
+              });
+              updateActiveDownloads();
+            } catch (e) {
+              console.warn('Failed to cancel download:', e);
+            }
+          });
+          footerRight.appendChild(cancelBtn);
+        }
+
+        footer.appendChild(percentSpan);
+        footer.appendChild(footerRight);
+
+        item.appendChild(header);
+        item.appendChild(barBg);
+        item.appendChild(footer);
 
         if (canCancel) {
           const cancelBtn = item.querySelector('.btn-cancel-dl');

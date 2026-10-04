@@ -57,36 +57,75 @@
 
     const displayTitle = title || 'Downloading video...';
 
-    card.innerHTML = `
-      <div class="yt-dlp-hud-header">
-        <span class="yt-dlp-hud-title" title="${escapeHtml(displayTitle)}">${escapeHtml(displayTitle)}</span>
-        <span class="yt-dlp-hud-badge" id="badge-${jobId}">STARTING</span>
-        <button class="yt-dlp-hud-close" id="close-${jobId}" title="Dismiss">&times;</button>
-      </div>
-      <div class="yt-dlp-hud-bar-bg">
-        <div class="yt-dlp-hud-bar-fill" id="bar-${jobId}" style="width: 0%;"></div>
-      </div>
-      <div class="yt-dlp-hud-stats">
-        <span id="stats-left-${jobId}">0.0%</span>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span id="stats-right-${jobId}">Connecting...</span>
-          <button class="yt-dlp-hud-btn-cancel" id="cancel-${jobId}">Cancel</button>
-        </div>
-      </div>
-    `;
+    // 1. Header
+    const header = document.createElement('div');
+    header.className = 'yt-dlp-hud-header';
+
+    const titleEl = document.createElement('span');
+    titleEl.className = 'yt-dlp-hud-title';
+    titleEl.title = displayTitle;
+    titleEl.textContent = displayTitle;
+
+    const badge = document.createElement('span');
+    badge.className = 'yt-dlp-hud-badge';
+    badge.id = `badge-${jobId}`;
+    badge.textContent = 'STARTING';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'yt-dlp-hud-close';
+    closeBtn.id = `close-${jobId}`;
+    closeBtn.title = 'Dismiss';
+    closeBtn.textContent = '×';
+    closeBtn.addEventListener('click', () => removeCard(jobId));
+
+    header.appendChild(titleEl);
+    header.appendChild(badge);
+    header.appendChild(closeBtn);
+
+    // 2. Progress Bar
+    const barBg = document.createElement('div');
+    barBg.className = 'yt-dlp-hud-bar-bg';
+
+    const barFill = document.createElement('div');
+    barFill.className = 'yt-dlp-hud-bar-fill';
+    barFill.id = `bar-${jobId}`;
+    barFill.style.width = '0%';
+    barBg.appendChild(barFill);
+
+    // 3. Stats Row
+    const stats = document.createElement('div');
+    stats.className = 'yt-dlp-hud-stats';
+
+    const statsLeft = document.createElement('span');
+    statsLeft.id = `stats-left-${jobId}`;
+    statsLeft.textContent = '0.0%';
+
+    const statsRightWrapper = document.createElement('div');
+    statsRightWrapper.style.display = 'flex';
+    statsRightWrapper.style.alignItems = 'center';
+    statsRightWrapper.style.gap = '8px';
+
+    const statsRight = document.createElement('span');
+    statsRight.id = `stats-right-${jobId}`;
+    statsRight.textContent = 'Connecting...';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'yt-dlp-hud-btn-cancel';
+    cancelBtn.id = `cancel-${jobId}`;
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', () => cancelJob(jobId));
+
+    statsRightWrapper.appendChild(statsRight);
+    statsRightWrapper.appendChild(cancelBtn);
+
+    stats.appendChild(statsLeft);
+    stats.appendChild(statsRightWrapper);
+
+    card.appendChild(header);
+    card.appendChild(barBg);
+    card.appendChild(stats);
 
     container.appendChild(card);
-
-    // Event listeners
-    const closeBtn = card.querySelector(`#close-${jobId}`);
-    if (closeBtn) {
-      closeBtn.addEventListener('click', () => removeCard(jobId));
-    }
-
-    const cancelBtn = card.querySelector(`#cancel-${jobId}`);
-    if (cancelBtn) {
-      cancelBtn.addEventListener('click', () => cancelJob(jobId));
-    }
 
     activeCards.set(jobId, {
       element: card,
@@ -97,14 +136,6 @@
 
     startPolling();
     return card;
-  }
-
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
   }
 
   function removeCard(jobId) {
