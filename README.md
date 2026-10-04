@@ -16,8 +16,10 @@ A lightweight Firefox / Gecko WebExtension and local bridge server that enables 
 ## Features
 
 * **Context Menu Integration**: Right-click on any video, link, or media element and select **"Download video with yt-dlp"**.
+* **Real-Time Floating Progress HUD**: Optional in-page glassmorphic HUD card pinned to the bottom right of the tab showing live download percentage, download speed, ETA, and remuxing status.
+* **Active Downloads Monitor**: Popup displays all currently running jobs with dynamic progress bars and instant download cancellation.
+* **Customizable Preferences**: Toggle the in-page overlay, browser popups, and desktop system notifications directly from the toolbar popup.
 * **Zero Browser Overhead**: Downloads run asynchronously in the background via `yt-dlp` without slowing down or locking up your browser.
-* **Granular Notification Preferences**: Choose between browser popups, system desktop notifications, both, or silent mode with toolbar badge feedback directly from the extension popup.
 * **Full yt-dlp Power**: Automatically inherits your custom yt-dlp configuration file (cookies, download folders, audio extraction, video quality formats, metadata, and subtitles).
 * **Live Destination Display**: Extension popup automatically queries the bridge server to display your active download folder.
 * **Background Autostart**:
@@ -98,7 +100,7 @@ Install the official signed version directly from Mozilla Add-ons:
 If you prefer installing directly from a local file without using AMO:
 1. Open your browser and navigate to `about:addons`.
 2. Click the **gear icon** at the top right of the page.
-3. Select **"Install Add-on From File..."** and choose `releases/yt-dlp-extension-v1.0.6.xpi`.
+3. Select **"Install Add-on From File..."** and choose `releases/yt-dlp-extension-v1.0.7.xpi`.
 
 > [!IMPORTANT]
 > **Signature Requirement:** Standard Firefox releases enforce mandatory add-on signing. If you install an unsigned local `.zip`/`.xpi` file directly on standard Firefox, you will see a signature verification error. To use unsigned files permanently, use **Firefox Developer Edition**, **Firefox Nightly**, **Firefox ESR**, or **LibreWolf** and disable signature checking:
@@ -120,8 +122,9 @@ If you prefer installing directly from a local file without using AMO:
 1. Navigate to any supported video page (YouTube, Twitch, Twitter/X, Reddit, Vimeo, TikTok, etc.).
 2. **Right-click** on the video or video link.
 3. Click **"Download video with yt-dlp"** in the context menu.
-4. An alert (browser popup or desktop toast, per your preference) and a green `DL` toolbar badge will confirm that the download has started.
-5. The downloaded video will be saved directly into your configured `yt-dlp` folder (or `~/Downloads`).
+4. An optional in-page floating HUD card displays live download progress (percentage, speed, and ETA) right on your active tab.
+5. You can also click the toolbar icon at any time to monitor active downloads or cancel in-flight jobs.
+6. The downloaded video will be saved directly into your configured `yt-dlp` folder (or `~/Downloads`).
 
 ---
 
@@ -164,14 +167,15 @@ yt-dlp-firefox-extension/
 │   ├── manifest.json       # Manifest V2 definition
 │   ├── background.js       # Background context menu & download trigger
 │   ├── popup/              # Toolbar status popup UI
+│   ├── content/            # In-page floating HUD overlay scripts & styles
 │   └── icons/              # Extension icons (16, 32, 48, 64, 128)
 ├── bridge/                 # Local bridge servers and CLI wrappers
 │   ├── server.py           # Lightweight Python HTTP bridge
 │   ├── yt-dlp-cli.sh       # CLI execution script with notifications
 │   └── yt-dlp-server.service # Systemd user service definition
 └── releases/               # Prebuilt extension packages
-    ├── yt-dlp-extension-v1.0.6.xpi  # Prebuilt Firefox XPI package
-    └── yt-dlp-extension-v1.0.6.zip  # WebExtension archive for AMO
+    ├── yt-dlp-extension-v1.0.7.xpi  # Prebuilt Firefox XPI package
+    └── yt-dlp-extension-v1.0.7.zip  # WebExtension archive for AMO
 ```
 
 ---

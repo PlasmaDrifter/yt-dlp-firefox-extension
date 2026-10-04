@@ -116,6 +116,33 @@ body {
   transition: border-color 0.2s ease;
 }
 
+.status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.status-header:hover .status-text {
+  color: #ffffff;
+}
+
+.chevron-icon {
+  color: var(--text-muted);
+  transition: transform 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.status-header:hover .chevron-icon,
+.section-title-row:hover .chevron-icon {
+  color: var(--text-main);
+}
+
+.chevron-icon.open {
+  transform: rotate(180deg);
+}
+
 .status-indicator {
   display: flex;
   align-items: center;
@@ -166,6 +193,148 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Downloads Card */
+.downloads-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.downloads-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-clear {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-clear:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.downloads-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.download-item {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 7px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.download-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.download-item-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 230px;
+}
+
+.download-item-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  flex-shrink: 0;
+}
+
+.download-item-badge.completed {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-green);
+}
+
+.download-item-badge.merging {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.download-item-badge.cancelled,
+.download-item-badge.error {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--accent-red);
+}
+
+.download-item-bar-bg {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.download-item-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.download-item-bar-fill.completed {
+  background: var(--accent-green);
+}
+
+.download-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.btn-cancel-dl {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  border-radius: 4px;
+  font-size: 10px;
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-cancel-dl:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: #ffffff;
 }
 
 /* Settings Card */
@@ -262,6 +431,23 @@ input:checked + .slider:before {
   transform: translateX(16px);
 }
 
+.setting-select {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 11.5px;
+  border-radius: 5px;
+  padding: 3px 6px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.setting-select:focus {
+  border-color: var(--accent-blue);
+}
+
 /* Tips Section */
 .tips-section {
   background: var(--card-bg);
@@ -277,12 +463,25 @@ input:checked + .slider:before {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.section-title-row:hover .section-title {
+  color: #ffffff;
+}
+
+.tips-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .section-title {
   font-size: 13.5px;
   font-weight: 600;
   color: var(--text-main);
+  transition: color 0.2s ease;
 }
 
 .badge {

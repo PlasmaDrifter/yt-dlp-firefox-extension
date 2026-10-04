@@ -35,22 +35,46 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
     }
 
     const url = rawUrl.trim();
-    const videoTitle = (tab && tab.title) ? tab.title.replace(" - YouTube", "") : url;
 
-    // Load notification preferences
+    // Determine the most accurate title available from link text or tab title
+    let videoTitle = "";
+    if (info.linkUrl && info.linkText && info.linkText.trim().length > 0) {
+        videoTitle = info.linkText.trim();
+    } else if (info.selectionText && info.selectionText.trim().length > 0) {
+        videoTitle = info.selectionText.trim();
+    } else if (tab && tab.title) {
+        let clean = tab.title
+            .replace(/\s*-\s*YouTube\s*$/i, "")
+            .replace(/\s*\|\s*Twitch\s*$/i, "")
+            .replace(/\s*\/\s*X\s*$/i, "")
+            .replace(/\s*-\s*Reddit\s*$/i, "")
+            .replace(/\s*on\s*Vimeo\s*$/i, "")
+            .trim();
+        if (clean.length > 0 && !/^(youtube|twitch|home|feed)$/i.test(clean)) {
+            videoTitle = clean;
+        }
+    }
+    if (!videoTitle) {
+        videoTitle = url;
+    }
+
+    // Load preferences
     let notifyBrowser = true;
     let notifySystem = false;
+    let enableOverlay = true;
     try {
         if (browser.storage && browser.storage.local) {
             const prefs = await browser.storage.local.get({
                 notifyBrowser: true,
-                notifySystem: false
+                notifySystem: false,
+                enableOverlay: true
             });
             notifyBrowser = prefs.notifyBrowser !== false;
             notifySystem = prefs.notifySystem === true;
+            enableOverlay = prefs.enableOverlay !== false;
         }
     } catch (e) {
-        console.warn("Could not read notification preferences:", e);
+        console.warn("Could not read preferences:", e);
     }
 
     // 1. Instant Extension Notification Popup (if enabled)
@@ -58,8 +82,8 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
         browser.notifications.create({
             type: "basic",
             iconUrl: "icons/icon-48.png",
-            title: "Download with yt-dlp",
-            message: `Starting download:\n${videoTitle}`
+            title: "Starting Download",
+            message: videoTitle
         });
     }
 
@@ -75,11 +99,25 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
     fetch("http://127.0.0.1:16800/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, notify: notifySystem })
+        body: JSON.stringify({ url, title: videoTitle, notify: notifySystem })
     })
     .then(res => res.json().catch(() => res.text()))
     .then(msg => {
         console.log("yt-dlp response:", msg);
+        if (enableOverlay && tab && tab.id && msg && msg.job_id) {
+            browser.tabs.sendMessage(tab.id, {
+                action: "show_progress",
+                job_id: msg.job_id,
+                title: videoTitle
+            }).catch(err => {
+                console.debug("Could not send progress to tab:", err);
+            });
+        }
+
+        // Track completion to display finish notification with full title
+        if (notifyBrowser && msg && msg.job_id) {
+            trackCompletion(msg.job_id, videoTitle);
+        }
     })
     .catch(err => {
         console.error("yt-dlp error:", err);
@@ -100,4 +138,39 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
         }
     });
 });
+
+function trackCompletion(jobId, initialTitle) {
+    let attempts = 0;
+    const interval = setInterval(async () => {
+        attempts++;
+        if (attempts > 1800) {
+            clearInterval(interval);
+            return;
+        }
+        try {
+            const res = await fetch("http://127.0.0.1:16800/downloads");
+            if (!res.ok) return;
+            const data = await res.json();
+            const job = (data.downloads || []).find(d => d.id === jobId);
+            if (!job) return;
+
+            if (job.status === "completed") {
+                clearInterval(interval);
+                const finalTitle = job.title || initialTitle;
+                if (browser.notifications && browser.notifications.create) {
+                    browser.notifications.create({
+                        type: "basic",
+                        iconUrl: "icons/icon-48.png",
+                        title: "Download Complete",
+                        message: finalTitle
+                    });
+                }
+            } else if (job.status === "error" || job.status === "cancelled") {
+                clearInterval(interval);
+            }
+        } catch (e) {
+            // Ignore temporary network connection issues
+        }
+    }, 1500);
+}
 
