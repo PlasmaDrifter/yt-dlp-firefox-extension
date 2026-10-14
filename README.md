@@ -30,28 +30,6 @@ A lightweight Firefox / Gecko WebExtension and local bridge server that enables 
 
 ---
 
-## Architecture Overview
-
-```
-+-------------------------------------------------+
-|  Firefox / Zen / LibreWolf Browser              |
-|  (WebExtension: background.js + toolbar popup)  |
-+------------------------+------------------------+
-                         | HTTP POST (http://127.0.0.1:16800/download)
-                         v
-+-------------------------------------------------+
-|  Local Bridge Server (server.py)                |  <-- Autostart: systemd / Startup
-+------------------------+------------------------+
-                         | Spawns
-                         v
-+-------------------------------------------------+
-|  yt-dlp CLI Process                             |  <-- Reads yt-dlp config
-|  + Configurable Notifications                   |  <-- Saves videos to configured path
-+-------------------------------------------------+
-```
-
----
-
 ## Installation & Setup
 
 ### Step 1: Set Up the Local Bridge Server
@@ -150,55 +128,74 @@ The extension triggers your system's `yt-dlp` binary, which automatically reads 
 
 ---
 
-## Repository Structure
-
-```
-yt-dlp-firefox-extension/
-├── README.md               # Complete documentation and setup guide
-├── LICENSE                 # MIT License
-├── assets/                 # Documentation screenshots and assets
-│   └── extension-popup-settings.png
-├── install.sh              # Automated Linux installer script
-├── install.bat             # Windows one-click installer batch script
-├── install.ps1             # Windows installer PowerShell script
-├── uninstall.bat           # Windows uninstaller batch script
-├── uninstall.ps1           # Windows uninstaller PowerShell script
-├── extension/              # WebExtension source code
-│   ├── manifest.json       # Manifest V2 definition
-│   ├── background.js       # Background context menu & download trigger
-│   ├── popup/              # Toolbar status popup UI
-│   ├── content/            # In-page floating HUD overlay scripts & styles
-│   └── icons/              # Extension icons (16, 32, 48, 64, 128)
-├── bridge/                 # Local bridge servers and CLI wrappers
-│   ├── server.py           # Lightweight Python HTTP bridge
-│   ├── yt-dlp-cli.sh       # CLI execution script with notifications
-│   └── yt-dlp-server.service # Systemd user service definition
-└── releases/               # Prebuilt extension packages
-    ├── yt-dlp-extension-v1.0.7.xpi  # Prebuilt Firefox XPI package
-    └── yt-dlp-extension-v1.0.7.zip  # WebExtension archive for AMO
-```
-
----
-
 ## Troubleshooting
 
-### 1. "Failed to fetch" error or downloads not triggering
-* Verify that the local bridge server is running:
+### 1. Check if the local bridge server is running
+* **Linux**:
   ```bash
   systemctl --user status yt-dlp-server.service
   ```
-* Test the health check endpoint:
+  If stopped, restart the background service:
+  ```bash
+  systemctl --user restart yt-dlp-server.service
+  ```
+* **Windows**:
+  * Launch the background server directly via PowerShell or Command Prompt:
+    ```cmd
+    pythonw.exe "%LOCALAPPDATA%\yt-dlp-bridge\server.py"
+    ```
+  * Or re-run the Windows installer to restore the startup shortcut and server:
+    ```cmd
+    install.bat
+    ```
+  * To check running bridge processes in PowerShell:
+    ```powershell
+    Get-Process pythonw, python | Where-Object { $_.CommandLine -like "*yt-dlp-bridge*" }
+    ```
+
+### 2. Test the health check endpoint
+* **Linux / macOS**:
   ```bash
   curl http://127.0.0.1:16800/health
   ```
-  *(Expected output: `{"status":"ok","service":"yt-dlp-bridge"}`)*
+* **Windows (PowerShell)**:
+  ```powershell
+  Invoke-RestMethod http://127.0.0.1:16800/health
+  ```
+  *(Expected output: `{"status":"ok","service":"yt-dlp-bridge",...}`)*
 
-### 2. Check Service Logs
-To inspect live download output and errors:
-```bash
-journalctl --user -u yt-dlp-server.service -f
-```
+### 3. Check service logs and errors
+* **Linux**:
+  Inspect live systemd journal logs:
+  ```bash
+  journalctl --user -u yt-dlp-server.service -f
+  ```
+* **Windows**:
+  Inspect the log file created by the bridge server:
+  ```powershell
+  Get-Content "$env:LOCALAPPDATA\yt-dlp-bridge\server.log" -Wait -Tail 20
+  ```
+  Or in Command Prompt:
+  ```cmd
+  type "%LOCALAPPDATA%\yt-dlp-bridge\server.log"
+  ```
 
+### 4. Verify yt-dlp and ffmpeg dependencies
+* **Windows**:
+  Ensure both tools are accessible in your PATH:
+  ```cmd
+  yt-dlp --version
+  ffmpeg -version
+  ```
+  If missing, install them via winget:
+  ```cmd
+  winget install yt-dlp.yt-dlp Gyan.FFmpeg Python.Python.3.12
+  ```
+* **Linux**:
+  ```bash
+  yt-dlp --version
+  ffmpeg -version
+  ```
 ---
 
 ## License
