@@ -8,7 +8,8 @@
 A lightweight Firefox / Gecko WebExtension and local bridge server that enables seamless one-click video and audio downloading directly from your browser using **[yt-dlp](https://github.com/yt-dlp/yt-dlp)**.
 
 <p align="center">
-  <img src="assets/extension-popup-settings.png" alt="Download with yt-dlp Extension Settings and Status" width="360" />
+  <img src="assets/extension-popup-settings.png" alt="Extension Popup" width="360" /><br>
+  <em>Extension Popup</em>
 </p>
 
 ---
