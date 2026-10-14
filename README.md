@@ -13,6 +13,12 @@ A lightweight Firefox / Gecko WebExtension and local bridge server that enables 
   <img src="assets/extension-popup-settings.png" alt="Extension Popup" width="360" />
 </p>
 
+### In-Page Download HUD
+
+<p align="center">
+  <img src="assets/in-page-hud-overlay.png" alt="In-Page Download HUD" width="360" />
+</p>
+
 ---
 
 ## Features
