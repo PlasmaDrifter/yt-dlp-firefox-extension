@@ -54,20 +54,20 @@ chmod +x install.sh
 ```
 
 #### Windows
-1. Clone the repository or download the ZIP from GitHub:
-```cmd
-git clone https://github.com/PlasmaDrifter/yt-dlp-firefox-extension.git
-cd yt-dlp-firefox-extension
-install.bat
-```
-2. Simply double-click **`install.bat`**.
+1. Download or clone the repository:
+   - Click the green **Code** button on GitHub and choose **Download ZIP**, then extract the ZIP folder in File Explorer.
+   - Or clone via command line:
+     ```cmd
+     git clone https://github.com/PlasmaDrifter/yt-dlp-firefox-extension.git
+     ```
+2. In **File Explorer**, simply double-click **`install.bat`** (no need to open PowerShell or the terminal).
 
 > [!IMPORTANT]
 > **Python on Windows:**
 > - The installer will attempt to install Python 3, `yt-dlp`, and `ffmpeg` automatically using `winget`.
 > - If you install Python manually from [python.org](https://www.python.org/downloads/), **make sure to check the box: "Add python.exe to PATH"** at the bottom of the Python installer window. Without this checkbox, Windows redirects Python commands to the Microsoft Store.
 
-To stop and remove the bridge server at any time, run **`./uninstall.sh`** (Linux) or double-click **`uninstall.bat`** (Windows).
+To stop and remove the bridge server at any time, run **`./uninstall.sh`** (Linux) or double-click **`uninstall.bat`** in File Explorer (Windows).
 
 ---
 
