@@ -67,7 +67,7 @@ install.bat
 > - The installer will attempt to install Python 3, `yt-dlp`, and `ffmpeg` automatically using `winget`.
 > - If you install Python manually from [python.org](https://www.python.org/downloads/), **make sure to check the box: "Add python.exe to PATH"** at the bottom of the Python installer window. Without this checkbox, Windows redirects Python commands to the Microsoft Store.
 
-To stop and remove the bridge server at any time, double-click **`uninstall.bat`**.
+To stop and remove the bridge server at any time, run **`./uninstall.sh`** (Linux) or double-click **`uninstall.bat`** (Windows).
 
 ---
 
