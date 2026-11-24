@@ -1,7 +1,11 @@
 #yt-dlp-hud-container {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  inset: auto 24px 24px auto;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  overflow: visible;
   z-index: 2147483647;
   display: flex;
   flex-direction: column;
@@ -22,7 +26,7 @@
 
 .yt-dlp-hud-card {
   pointer-events: auto;
-  background: rgba(18, 20, 26, 0.92);
+  background: rgba(18, 20, 26, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -32,8 +36,13 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  animation: yt-dlp-slide-in 0.3s ease-out;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  animation: yt-dlp-slide-in 0.25s ease-out;
+}
+
+.yt-dlp-hud-card.yt-dlp-hud-leaving {
+  opacity: 0;
+  transform: translateY(10px);
 }
 
 @keyframes yt-dlp-slide-in {
@@ -73,6 +82,7 @@
   background: rgba(59, 130, 246, 0.2);
   color: #60a5fa;
   letter-spacing: 0.5px;
+  flex-shrink: 0;
 }
 
 .yt-dlp-hud-badge.completed {
@@ -98,7 +108,7 @@
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 2px 5px;
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -110,48 +120,130 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-.yt-dlp-hud-bar-bg {
+.yt-dlp-hud-close:focus-visible,
+.yt-dlp-hud-btn-cancel:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* Native <progress> styling per modern-web-guidance */
+.yt-dlp-hud-progress {
+  appearance: none;
+  border: 0 solid;
+  overflow: clip;
   width: 100%;
   height: 6px;
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  overflow: hidden;
+  container-type: inline-size;
+  --progress-bar-fill: linear-gradient(90deg, #3b82f6, #60a5fa);
+  --progress-bar-indeterminate-size: 35%;
+  --progress-bar-indeterminate-duration: 1.4s;
 }
 
-.yt-dlp-hud-bar-fill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, #3b82f6, #60a5fa);
-  border-radius: 3px;
-  transition: width 0.3s ease;
+.yt-dlp-hud-progress.completed {
+  --progress-bar-fill: #10b981;
 }
 
-.yt-dlp-hud-bar-fill.completed {
-  background: #10b981;
+.yt-dlp-hud-progress.error {
+  --progress-bar-fill: #ef4444;
+}
+
+.yt-dlp-hud-progress:indeterminate {
+  --progress-bar-animation: yt-dlp-progress-indeterminate var(--progress-bar-indeterminate-duration) infinite linear;
+}
+
+.yt-dlp-hud-progress::-webkit-progress-bar {
+  background: transparent;
+}
+
+.yt-dlp-hud-progress::-webkit-progress-value {
+  background: var(--progress-bar-fill);
+  border-radius: 999px;
+  transition: inline-size 0.3s ease;
+  animation: var(--progress-bar-animation, revert-rule);
+}
+
+.yt-dlp-hud-progress::-moz-progress-bar {
+  background: var(--progress-bar-fill);
+  border-radius: 999px;
+  transition: inline-size 0.3s ease;
+  animation: var(--progress-bar-animation, revert-rule);
+}
+
+@keyframes yt-dlp-progress-indeterminate {
+  from,
+  to {
+    inline-size: var(--progress-bar-indeterminate-size);
+    margin-right: auto;
+  }
+  from {
+    translate: -100%;
+  }
+  to {
+    translate: 100cqi;
+  }
 }
 
 .yt-dlp-hud-stats {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   font-size: 11px;
   color: #9aa2b1;
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
+.yt-dlp-hud-stats-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.yt-dlp-hud-stats-msg {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 195px;
+}
+
 .yt-dlp-hud-btn-cancel {
   background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.35);
   color: #f87171;
   border-radius: 4px;
   font-size: 10.5px;
   padding: 2px 6px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s;
   font-family: inherit;
+  flex-shrink: 0;
 }
 
-.yt-dlp-hud-btn-cancel:hover {
+.yt-dlp-hud-btn-cancel:hover:not(:disabled) {
   background: rgba(239, 68, 68, 0.3);
   color: #ffffff;
+}
+
+.yt-dlp-hud-btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yt-dlp-hud-card {
+    animation: none;
+    transition: none;
+  }
+  .yt-dlp-hud-progress {
+    --progress-bar-indeterminate-duration: 10s;
+  }
+  .yt-dlp-hud-progress::-webkit-progress-value {
+    transition: none;
+  }
+  .yt-dlp-hud-progress::-moz-progress-bar {
+    transition: none;
+  }
 }

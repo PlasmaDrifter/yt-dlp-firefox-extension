@@ -14,32 +14,43 @@
         <img src="../icons/icon-32.png" alt="Logo" class="logo">
         <div>
           <h1 class="title">yt-dlp Downloader</h1>
-          <span class="version" id="version-tag">v1.0.7</span>
+          <span class="version" id="version-tag"></span>
         </div>
       </div>
-      <button id="btn-refresh" class="btn-icon" title="Refresh Server Status">
-        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
-          <path d="M23 4v6h-6M1 20v-6h6"></path>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-        </svg>
-      </button>
+      <div class="header-actions">
+        <button type="button" id="btn-open-folder" class="btn-icon" title="Open Download Folder" aria-label="Open Download Folder">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </button>
+        <button type="button" id="btn-refresh" class="btn-icon" title="Refresh Server Status" aria-label="Refresh Server Status">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+            <path d="M23 4v6h-6M1 20v-6h6"></path>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+      </div>
     </header>
 
-    <!-- Server Status Card -->
-    <section class="status-card" id="status-card">
-      <div class="status-header" id="toggle-status" title="Click to view/hide server details">
+    <!-- Server Status Card (native accessible disclosure) -->
+    <details class="status-card" id="status-card">
+      <summary class="status-header" title="Click to view/hide server details">
         <div class="status-indicator">
           <span class="status-dot" id="status-dot"></span>
           <span class="status-text" id="status-text">Checking server...</span>
         </div>
-        <svg class="chevron-icon" id="status-chevron" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+        <svg class="chevron-icon" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
-      </div>
-      <div class="status-details" id="status-details" style="display: none;">
+      </summary>
+      <div class="status-details">
         <div class="detail-row">
           <span class="detail-label">Endpoint:</span>
           <span class="detail-val">127.0.0.1:16800</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Bridge:</span>
+          <span class="detail-val" id="bridge-version">-</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Detected OS:</span>
@@ -50,13 +61,42 @@
           <span class="detail-val" id="destination-val" title="Detecting...">Detecting...</span>
         </div>
       </div>
+    </details>
+
+    <!-- Quick Download Card -->
+    <section class="quick-card" aria-label="Quick Download">
+      <form id="quick-download-form" class="quick-form" novalidate>
+        <div class="quick-row">
+          <input
+            type="url"
+            id="input-url"
+            class="url-input"
+            placeholder="Paste video URL (http/https)..."
+            aria-label="Video URL"
+            aria-describedby="url-error"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button type="submit" id="btn-download-url" class="btn-primary">Download</button>
+        </div>
+        <div class="quick-row">
+          <select id="select-mode" class="setting-select mode-select" aria-label="Download mode">
+            <option value="default" selected>Best Video (Default)</option>
+            <option value="audio">Audio Only</option>
+            <option value="single">Single Video (No Playlist)</option>
+            <option value="playlist">Playlist</option>
+          </select>
+          <button type="button" id="btn-download-tab" class="btn-secondary">Current Tab</button>
+        </div>
+        <div id="url-error" class="form-error" role="alert" hidden></div>
+      </form>
     </section>
 
-    <!-- Active Downloads Card (shown when downloads are active) -->
-    <section class="downloads-card" id="downloads-card" style="display: none;">
+    <!-- Active Downloads Card -->
+    <section class="downloads-card" id="downloads-card" hidden>
       <div class="downloads-header">
-        <span class="settings-title">Active Downloads</span>
-        <button id="btn-clear-downloads" class="btn-clear" title="Clear all finished downloads">Clear All</button>
+        <span class="settings-title">Downloads</span>
+        <button type="button" id="btn-clear-downloads" class="btn-clear" title="Clear all finished downloads">Clear All</button>
       </div>
       <div id="downloads-list" class="downloads-list"></div>
     </section>
@@ -65,20 +105,20 @@
     <section class="settings-card">
       <div class="settings-title">Preferences</div>
       <div class="setting-row">
-        <div class="setting-info">
+        <label class="setting-info" for="toggle-overlay">
           <span class="setting-label">Page Progress Overlay</span>
           <span class="setting-desc">In-page floating HUD on active tab</span>
-        </div>
+        </label>
         <label class="switch" title="Toggle floating download HUD on active tab">
-          <input type="checkbox" id="toggle-overlay" checked>
+          <input type="checkbox" role="switch" aria-checked="true" id="toggle-overlay" checked>
           <span class="slider"></span>
         </label>
       </div>
       <div class="setting-row" id="row-overlay-timer">
-        <div class="setting-info">
+        <label class="setting-info" for="select-overlay-timer">
           <span class="setting-label">Close Page Overlay</span>
           <span class="setting-desc">Dismiss in-page HUD after finish</span>
-        </div>
+        </label>
         <select id="select-overlay-timer" class="setting-select" title="Auto-dismiss duration for page overlay">
           <option value="2">2 seconds</option>
           <option value="4" selected>4 seconds</option>
@@ -88,10 +128,10 @@
         </select>
       </div>
       <div class="setting-row">
-        <div class="setting-info">
+        <label class="setting-info" for="select-popup-timer">
           <span class="setting-label">Clear on This Popup</span>
           <span class="setting-desc">Clear finished items listed here</span>
-        </div>
+        </label>
         <select id="select-popup-timer" class="setting-select" title="Time finished items stay on this popup">
           <option value="5">5 seconds</option>
           <option value="15" selected>15 seconds</option>
@@ -101,69 +141,93 @@
         </select>
       </div>
       <div class="setting-row">
-        <div class="setting-info">
-          <span class="setting-label">Browser Notification</span>
-          <span class="setting-desc">Firefox popup alert on download</span>
-        </div>
-        <label class="switch" title="Toggle Firefox browser notifications">
-          <input type="checkbox" id="toggle-browser-notify" checked>
+        <label class="setting-info" for="toggle-context-submenu">
+          <span class="setting-label">Context Menu Submenu</span>
+          <span class="setting-desc">Show format &amp; playlist options on right-click</span>
+        </label>
+        <label class="switch" title="Toggle format options submenu in right-click menu">
+          <input type="checkbox" role="switch" aria-checked="false" id="toggle-context-submenu">
           <span class="slider"></span>
         </label>
       </div>
       <div class="setting-row">
-        <div class="setting-info">
+        <label class="setting-info" for="toggle-browser-notify">
+          <span class="setting-label">Browser Notification</span>
+          <span class="setting-desc">Firefox popup alert on download</span>
+        </label>
+        <label class="switch" title="Toggle Firefox browser notifications">
+          <input type="checkbox" role="switch" aria-checked="true" id="toggle-browser-notify" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <label class="setting-info" for="toggle-system-notify">
           <span class="setting-label">System Notification</span>
           <span class="setting-desc">OS desktop alert (notify-send / Toast)</span>
-        </div>
+        </label>
         <label class="switch" title="Toggle OS desktop system notifications">
-          <input type="checkbox" id="toggle-system-notify">
+          <input type="checkbox" role="switch" aria-checked="false" id="toggle-system-notify">
           <span class="slider"></span>
         </label>
       </div>
     </section>
 
-    <!-- OS-Specific Troubleshooting Section (Shown if user expands) -->
-    <section class="tips-section" id="tips-section">
-      <div class="section-title-row" id="toggle-tips" title="Click to view/hide troubleshooting commands">
+    <!-- OS-Specific Troubleshooting Section (native disclosure) -->
+    <details class="tips-section" id="tips-section">
+      <summary class="section-title-row" title="Click to view/hide troubleshooting commands">
         <div class="tips-header-left">
-          <span class="section-title">Troubleshooting & Fixes</span>
+          <span class="section-title">Troubleshooting &amp; Fixes</span>
           <span class="badge" id="os-badge">Linux</span>
         </div>
-        <svg class="chevron-icon" id="tips-chevron" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+        <svg class="chevron-icon" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
-      </div>
+      </summary>
 
-      <div id="tips-body" style="display: none;">
+      <div id="tips-body" class="tips-body">
         <!-- Linux Tips -->
         <div class="os-content" id="tips-linux">
           <p class="tip-desc">If the server is offline, start the background service:</p>
           <div class="code-box">
             <code>systemctl --user restart yt-dlp-server</code>
-            <button class="btn-copy" data-copy="systemctl --user restart yt-dlp-server" title="Copy command">Copy</button>
+            <button type="button" class="btn-copy" data-copy="systemctl --user restart yt-dlp-server" title="Copy command">Copy</button>
           </div>
-          <p class="tip-desc">Or check service status & logs:</p>
+          <p class="tip-desc">Or check service status &amp; logs:</p>
           <div class="code-box">
             <code>systemctl --user status yt-dlp-server</code>
-            <button class="btn-copy" data-copy="systemctl --user status yt-dlp-server" title="Copy command">Copy</button>
+            <button type="button" class="btn-copy" data-copy="systemctl --user status yt-dlp-server" title="Copy command">Copy</button>
           </div>
         </div>
 
         <!-- Windows Tips -->
-        <div class="os-content" id="tips-win" style="display: none;">
+        <div class="os-content" id="tips-win" hidden>
           <p class="tip-desc">Double-click install.bat in Explorer or run:</p>
           <div class="code-box">
             <code>install.bat</code>
-            <button class="btn-copy" data-copy="install.bat" title="Copy command">Copy</button>
+            <button type="button" class="btn-copy" data-copy="install.bat" title="Copy command">Copy</button>
           </div>
           <p class="tip-desc">Or launch background server directly:</p>
           <div class="code-box">
             <code>pythonw.exe "%LOCALAPPDATA%\yt-dlp-bridge\server.py"</code>
-            <button class="btn-copy" data-copy='pythonw.exe "%LOCALAPPDATA%\yt-dlp-bridge\server.py"' title="Copy command">Copy</button>
+            <button type="button" class="btn-copy" data-copy='pythonw.exe "%LOCALAPPDATA%\yt-dlp-bridge\server.py"' title="Copy command">Copy</button>
+          </div>
+        </div>
+
+        <!-- macOS Tips -->
+        <div class="os-content" id="tips-mac" hidden>
+          <p class="tip-desc">Launch the bridge server in Terminal:</p>
+          <div class="code-box">
+            <code>python3 ~/.local/share/yt-dlp-bridge/server.py</code>
+            <button type="button" class="btn-copy" data-copy="python3 ~/.local/share/yt-dlp-bridge/server.py" title="Copy command">Copy</button>
+          </div>
+          <p class="tip-desc">Check dependencies via Homebrew:</p>
+          <div class="code-box">
+            <code>brew install yt-dlp ffmpeg</code>
+            <button type="button" class="btn-copy" data-copy="brew install yt-dlp ffmpeg" title="Copy command">Copy</button>
           </div>
         </div>
       </div>
-    </section>
+    </details>
 
     <!-- Footer Links -->
     <footer class="footer">

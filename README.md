@@ -23,10 +23,12 @@ A lightweight Firefox / Gecko WebExtension and local bridge server that enables 
 
 ## Features
 
-* **Context Menu Integration**: Right-click on any video, link, or media element and select **"Download video with yt-dlp"**.
-* **Real-Time Floating Progress HUD**: Optional in-page glassmorphic HUD card pinned to the bottom right of the tab showing live download percentage, download speed, ETA, and remuxing status.
-* **Active Downloads Monitor**: Popup displays all currently running jobs with dynamic progress bars and instant download cancellation.
-* **Customizable Preferences**: Toggle the in-page overlay, browser popups, and desktop system notifications directly from the toolbar popup.
+* **Context Menu Integration**: Right-click on any video, link, or media element and select **"Download video with yt-dlp"** (with an optional format & playlist submenu toggle in Preferences).
+* **Quick Download & Mode Selector**: Paste any URL directly in the toolbar popup or click **Current Tab**, and choose between **Best Video (Default)**, **Audio Only**, **Single Video (No Playlist)**, or **Playlist**.
+* **Real-Time Floating Progress HUD**: Optional in-page glassmorphic HUD card pinned to the bottom right of the tab showing live download percentage, speed, ETA, remuxing status, and error details.
+* **Active Downloads Monitor**: Popup displays all currently running and recent jobs with smooth progress bars, cancel, retry, per-item dismiss, and one-click **Open Folder** access.
+* **Hardened Local Bridge**: Binds strictly to `127.0.0.1:16800` with host/origin validation, JSON content-type enforcement, safe subprocess argument handling, and full process-group cancellation.
+* **Customizable Preferences**: Toggle the in-page overlay, context menu submenu, auto-dismiss timers, browser popups, and desktop system notifications directly from the toolbar popup.
 * **Zero Browser Overhead**: Downloads run asynchronously in the background via `yt-dlp` without slowing down or locking up your browser.
 * **Full yt-dlp Power**: Automatically inherits your custom yt-dlp configuration file (cookies, download folders, audio extraction, video quality formats, metadata, and subtitles).
 * **Live Destination Display**: Extension popup automatically queries the bridge server to display your active download folder.
@@ -86,7 +88,7 @@ Install the official signed version directly from Mozilla Add-ons:
 If you prefer installing directly from a local file without using AMO:
 1. Open your browser and navigate to `about:addons`.
 2. Click the **gear icon** at the top right of the page.
-3. Select **"Install Add-on From File..."** and choose `releases/yt-dlp-extension-v1.0.7.xpi`.
+3. Select **"Install Add-on From File..."** and choose `releases/yt-dlp-extension-v1.0.8.xpi`.
 
 > [!IMPORTANT]
 > **Signature Requirement:** Standard Firefox releases enforce mandatory add-on signing. If you install an unsigned local `.zip`/`.xpi` file directly on standard Firefox, you will see a signature verification error. To use unsigned files permanently, use **Firefox Developer Edition**, **Firefox Nightly**, **Firefox ESR**, or **LibreWolf** and disable signature checking:

@@ -1,410 +1,677 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const browserApi = (typeof browser !== 'undefined' && browser.runtime) ? browser : (typeof chrome !== 'undefined' ? chrome : null);
+  const BRIDGE_BASE = 'http://127.0.0.1:16800';
+  const browserApi =
+    typeof browser !== 'undefined' && browser.runtime
+      ? browser
+      : typeof chrome !== 'undefined'
+        ? chrome
+        : null;
+
+  const versionTag = document.getElementById('version-tag');
   const statusCard = document.getElementById('status-card');
   const statusText = document.getElementById('status-text');
+  const bridgeVersionEl = document.getElementById('bridge-version');
   const detectedOsEl = document.getElementById('detected-os');
   const osBadge = document.getElementById('os-badge');
   const btnRefresh = document.getElementById('btn-refresh');
+  const btnOpenFolder = document.getElementById('btn-open-folder');
   const destinationEl = document.getElementById('destination-val');
+
+  const quickForm = document.getElementById('quick-download-form');
+  const inputUrl = document.getElementById('input-url');
+  const selectMode = document.getElementById('select-mode');
+  const btnDownloadUrl = document.getElementById('btn-download-url');
+  const btnDownloadTab = document.getElementById('btn-download-tab');
+  const urlErrorEl = document.getElementById('url-error');
+
   const toggleOverlay = document.getElementById('toggle-overlay');
   const selectOverlayTimer = document.getElementById('select-overlay-timer');
   const selectPopupTimer = document.getElementById('select-popup-timer');
+  const toggleContextSubmenu = document.getElementById('toggle-context-submenu');
   const toggleBrowserNotify = document.getElementById('toggle-browser-notify');
   const toggleSystemNotify = document.getElementById('toggle-system-notify');
+
   const downloadsCard = document.getElementById('downloads-card');
   const downloadsList = document.getElementById('downloads-list');
   const btnClearDownloads = document.getElementById('btn-clear-downloads');
 
   const tipsLinux = document.getElementById('tips-linux');
   const tipsWin = document.getElementById('tips-win');
+  const tipsMac = document.getElementById('tips-mac');
 
   let popupRetentionSeconds = 15;
+  let urlFieldTouched = false;
+  const cardRefsById = new Map();
+
+  // Populate extension version dynamically from manifest
+  if (versionTag && browserApi && browserApi.runtime && browserApi.runtime.getManifest) {
+    const manifest = browserApi.runtime.getManifest();
+    if (manifest && manifest.version) {
+      versionTag.textContent = `v${manifest.version}`;
+    }
+  }
+
+  function syncSwitchAria(input) {
+    if (input) {
+      input.setAttribute('aria-checked', String(Boolean(input.checked)));
+    }
+  }
+
+  function validateHttpUrl(raw) {
+    if (!raw || typeof raw !== 'string') return null;
+    const trimmed = raw.trim();
+    if (!trimmed) return null;
+    try {
+      const parsed = new URL(trimmed);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return parsed.href;
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
+
+  function showFormError(msg) {
+    if (!urlErrorEl) return;
+    if (msg) {
+      urlErrorEl.textContent = msg;
+      urlErrorEl.hidden = false;
+      if (inputUrl) inputUrl.setAttribute('aria-invalid', 'true');
+    } else {
+      urlErrorEl.textContent = '';
+      urlErrorEl.hidden = true;
+      if (inputUrl) inputUrl.removeAttribute('aria-invalid');
+    }
+  }
 
   // Load preferences
   if (browserApi && browserApi.storage && browserApi.storage.local) {
-    browserApi.storage.local.get({
-      enableOverlay: true,
-      overlayDismissSeconds: 4,
-      popupRetentionSeconds: 15,
-      notifyBrowser: true,
-      notifySystem: false
-    }).then(items => {
-      if (toggleOverlay) toggleOverlay.checked = items.enableOverlay !== false;
-      if (selectOverlayTimer) selectOverlayTimer.value = String(items.overlayDismissSeconds !== undefined ? items.overlayDismissSeconds : 4);
+    try {
+      const items = await browserApi.storage.local.get({
+        enableOverlay: true,
+        overlayDismissSeconds: 4,
+        popupRetentionSeconds: 15,
+        showContextSubmenu: false,
+        notifyBrowser: true,
+        notifySystem: false,
+      });
+      if (toggleOverlay) {
+        toggleOverlay.checked = items.enableOverlay !== false;
+        syncSwitchAria(toggleOverlay);
+      }
+      if (selectOverlayTimer) {
+        selectOverlayTimer.value = String(
+          items.overlayDismissSeconds !== undefined ? items.overlayDismissSeconds : 4
+        );
+      }
       if (selectPopupTimer) {
-        popupRetentionSeconds = items.popupRetentionSeconds !== undefined ? Number(items.popupRetentionSeconds) : 15;
+        popupRetentionSeconds =
+          items.popupRetentionSeconds !== undefined ? Number(items.popupRetentionSeconds) : 15;
         selectPopupTimer.value = String(popupRetentionSeconds);
       }
-      if (toggleBrowserNotify) toggleBrowserNotify.checked = items.notifyBrowser !== false;
-      if (toggleSystemNotify) toggleSystemNotify.checked = items.notifySystem === true;
-    }).catch(err => {
+      if (toggleContextSubmenu) {
+        toggleContextSubmenu.checked = items.showContextSubmenu === true;
+        syncSwitchAria(toggleContextSubmenu);
+      }
+      if (toggleBrowserNotify) {
+        toggleBrowserNotify.checked = items.notifyBrowser !== false;
+        syncSwitchAria(toggleBrowserNotify);
+      }
+      if (toggleSystemNotify) {
+        toggleSystemNotify.checked = items.notifySystem === true;
+        syncSwitchAria(toggleSystemNotify);
+      }
+    } catch (err) {
       console.warn('Could not load preferences:', err);
-    });
+    }
 
     if (toggleOverlay) {
       toggleOverlay.addEventListener('change', () => {
+        syncSwitchAria(toggleOverlay);
         browserApi.storage.local.set({ enableOverlay: toggleOverlay.checked });
       });
     }
-
     if (selectOverlayTimer) {
       selectOverlayTimer.addEventListener('change', () => {
         browserApi.storage.local.set({ overlayDismissSeconds: Number(selectOverlayTimer.value) });
       });
     }
-
     if (selectPopupTimer) {
       selectPopupTimer.addEventListener('change', () => {
         popupRetentionSeconds = Number(selectPopupTimer.value);
         browserApi.storage.local.set({ popupRetentionSeconds });
-        updateActiveDownloads();
+        fetchAndRenderDownloads();
       });
     }
-
+    if (toggleContextSubmenu) {
+      toggleContextSubmenu.addEventListener('change', () => {
+        syncSwitchAria(toggleContextSubmenu);
+        browserApi.storage.local.set({ showContextSubmenu: toggleContextSubmenu.checked });
+      });
+    }
     if (toggleBrowserNotify) {
       toggleBrowserNotify.addEventListener('change', () => {
+        syncSwitchAria(toggleBrowserNotify);
         browserApi.storage.local.set({ notifyBrowser: toggleBrowserNotify.checked });
       });
     }
-
     if (toggleSystemNotify) {
       toggleSystemNotify.addEventListener('change', () => {
+        syncSwitchAria(toggleSystemNotify);
         browserApi.storage.local.set({ notifySystem: toggleSystemNotify.checked });
       });
     }
   }
 
-  // Clear all finished downloads button
-  if (btnClearDownloads) {
-    btnClearDownloads.addEventListener('click', async () => {
-      btnClearDownloads.disabled = true;
-      btnClearDownloads.textContent = 'Clearing...';
-      try {
-        await fetch('http://127.0.0.1:16800/clear', { method: 'POST' });
-      } catch (e) {
-        console.warn('Failed to clear downloads:', e);
-      } finally {
-        btnClearDownloads.disabled = false;
-        btnClearDownloads.textContent = 'Clear All';
-        updateActiveDownloads();
-      }
-    });
-  }
-
-  // Detect OS using Firefox WebExtensions API
+  // Detect OS via WebExtensions API
   let currentOs = 'linux';
   try {
     if (browserApi && browserApi.runtime && browserApi.runtime.getPlatformInfo) {
       const info = await browserApi.runtime.getPlatformInfo();
       if (info && info.os) {
-        currentOs = info.os; // 'linux', 'win', etc.
+        currentOs = info.os;
       }
-    } else {
-      throw new Error('getPlatformInfo not available');
     }
-  } catch (err) {
-    // Fallback to user agent / navigator
+  } catch {
     const ua = (navigator.userAgent || '').toLowerCase();
-    const plat = (navigator.platform || '').toLowerCase();
-    if (ua.includes('win') || plat.includes('win')) currentOs = 'win';
+    if (ua.includes('win')) currentOs = 'win';
+    else if (ua.includes('mac')) currentOs = 'mac';
     else currentOs = 'linux';
   }
 
-  // Configure UI based on detected OS
   function updateOsDisplay(os) {
-    if (tipsLinux) tipsLinux.style.display = 'none';
-    if (tipsWin) tipsWin.style.display = 'none';
+    if (tipsLinux) tipsLinux.hidden = true;
+    if (tipsWin) tipsWin.hidden = true;
+    if (tipsMac) tipsMac.hidden = true;
 
     if (os === 'win') {
       detectedOsEl.textContent = 'Windows (x64)';
       osBadge.textContent = 'Windows';
-      if (tipsWin) tipsWin.style.display = 'block';
+      if (tipsWin) tipsWin.hidden = false;
+    } else if (os === 'mac') {
+      detectedOsEl.textContent = 'macOS';
+      osBadge.textContent = 'macOS';
+      if (tipsMac) tipsMac.hidden = false;
     } else {
       detectedOsEl.textContent = 'Linux (X11 / Wayland)';
       osBadge.textContent = 'Linux';
-      if (tipsLinux) tipsLinux.style.display = 'block';
+      if (tipsLinux) tipsLinux.hidden = false;
     }
   }
 
   updateOsDisplay(currentOs);
 
-  // Check server health
-  async function checkServerHealth() {
-    btnRefresh.classList.add('spinning');
-    statusCard.className = 'status-card';
-    statusText.textContent = 'Checking server...';
-
+  async function checkServerHealth({ showSpinner = true } = {}) {
+    if (showSpinner && btnRefresh) {
+      btnRefresh.classList.add('spinning');
+    }
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-      const res = await fetch('http://127.0.0.1:16800/health', {
+      const res = await fetch(`${BRIDGE_BASE}/health`, {
         method: 'GET',
-        signal: controller.signal
+        signal: AbortSignal.timeout(2000),
       });
-      clearTimeout(timeoutId);
-
-      if (res.ok) {
-        const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const data = await res.json().catch(() => ({}));
+      if (data.ytdlp_found === false) {
+        statusCard.className = 'status-card warning';
+        statusText.textContent = 'Bridge Online (yt-dlp missing)';
+      } else {
         statusCard.className = 'status-card online';
         statusText.textContent = 'Server Online (Ready)';
-        if (data.platform) {
-          if (data.platform.startsWith('win')) detectedOsEl.textContent = 'Windows (Bridge Active)';
-          else detectedOsEl.textContent = 'Linux (Bridge Active)';
-        }
-        if (destinationEl && data.destination) {
-          destinationEl.textContent = data.destination;
-          destinationEl.title = data.destination;
-        }
-      } else {
-        throw new Error(`Server returned HTTP ${res.status}`);
       }
-    } catch (err) {
+      if (bridgeVersionEl) {
+        bridgeVersionEl.textContent = data.version ? `v${data.version}` : 'Active';
+      }
+      if (data.platform) {
+        if (data.platform.startsWith('win')) detectedOsEl.textContent = 'Windows (Bridge Active)';
+        else if (data.platform === 'darwin') detectedOsEl.textContent = 'macOS (Bridge Active)';
+        else detectedOsEl.textContent = 'Linux (Bridge Active)';
+      }
+      if (destinationEl && data.destination) {
+        destinationEl.textContent = data.destination;
+        destinationEl.title = data.destination;
+      }
+    } catch {
       statusCard.className = 'status-card offline';
       statusText.textContent = 'Server Offline (Disconnected)';
+      if (bridgeVersionEl) bridgeVersionEl.textContent = '-';
       if (destinationEl) {
         destinationEl.textContent = '~/Downloads';
         destinationEl.title = '~/Downloads (Default)';
       }
     } finally {
-      setTimeout(() => btnRefresh.classList.remove('spinning'), 350);
+      if (showSpinner && btnRefresh) {
+        setTimeout(() => btnRefresh.classList.remove('spinning'), 350);
+      }
     }
   }
 
-  // Refresh button
-  btnRefresh.addEventListener('click', checkServerHealth);
+  if (btnRefresh) {
+    btnRefresh.addEventListener('click', () => checkServerHealth({ showSpinner: true }));
+  }
 
-  // Collapsible Server Status Details
-  const toggleStatus = document.getElementById('toggle-status');
-  const statusDetails = document.getElementById('status-details');
-  const statusChevron = document.getElementById('status-chevron');
-
-  if (toggleStatus && statusDetails) {
-    toggleStatus.addEventListener('click', () => {
-      const isHidden = statusDetails.style.display === 'none';
-      statusDetails.style.display = isHidden ? 'flex' : 'none';
-      if (statusChevron) {
-        statusChevron.classList.toggle('open', isHidden);
+  if (btnOpenFolder) {
+    btnOpenFolder.addEventListener('click', async () => {
+      btnOpenFolder.disabled = true;
+      try {
+        await fetch(`${BRIDGE_BASE}/open-folder`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: '{}',
+          signal: AbortSignal.timeout(3000),
+        });
+      } catch (err) {
+        console.warn('Could not open download folder:', err);
+      } finally {
+        btnOpenFolder.disabled = false;
       }
     });
   }
 
-  // Collapsible Troubleshooting Section
-  const toggleTips = document.getElementById('toggle-tips');
-  const tipsBody = document.getElementById('tips-body');
-  const tipsChevron = document.getElementById('tips-chevron');
+  // Quick download form validation (show errors only after blur/submit)
+  if (inputUrl) {
+    inputUrl.addEventListener('blur', () => {
+      urlFieldTouched = true;
+      const val = inputUrl.value.trim();
+      if (val && !validateHttpUrl(val)) {
+        showFormError('Enter a valid http:// or https:// URL.');
+      } else {
+        showFormError('');
+      }
+    });
 
-  if (toggleTips && tipsBody) {
-    toggleTips.addEventListener('click', () => {
-      const isHidden = tipsBody.style.display === 'none';
-      tipsBody.style.display = isHidden ? 'block' : 'none';
-      if (tipsChevron) {
-        tipsChevron.classList.toggle('open', isHidden);
+    inputUrl.addEventListener('input', () => {
+      if (!urlFieldTouched) return;
+      const val = inputUrl.value.trim();
+      if (!val || validateHttpUrl(val)) {
+        showFormError('');
+      }
+    });
+  }
+
+  async function triggerPopupDownload({ url, title = '', tabId = null }) {
+    const mode = selectMode ? selectMode.value : 'default';
+    if (btnDownloadUrl) btnDownloadUrl.disabled = true;
+    if (btnDownloadTab) btnDownloadTab.disabled = true;
+    try {
+      const resp = await browserApi.runtime.sendMessage({
+        action: 'start_download',
+        url,
+        title,
+        mode,
+        tabId,
+        showOverlayOnActiveTab: tabId === null,
+      });
+      if (!resp || !resp.ok) {
+        showFormError((resp && resp.error) || 'Failed to start download.');
+        return false;
+      }
+      showFormError('');
+      await fetchAndRenderDownloads();
+      return true;
+    } catch (err) {
+      showFormError(err && err.message ? err.message : 'Failed to reach extension background.');
+      return false;
+    } finally {
+      if (btnDownloadUrl) btnDownloadUrl.disabled = false;
+      if (btnDownloadTab) btnDownloadTab.disabled = false;
+    }
+  }
+
+  if (quickForm && inputUrl) {
+    quickForm.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      urlFieldTouched = true;
+      const validUrl = validateHttpUrl(inputUrl.value);
+      if (!validUrl) {
+        showFormError('Enter a valid http:// or https:// URL.');
+        inputUrl.focus();
+        return;
+      }
+      const ok = await triggerPopupDownload({ url: validUrl });
+      if (ok) {
+        inputUrl.value = '';
+        urlFieldTouched = false;
+      }
+    });
+  }
+
+  if (btnDownloadTab) {
+    btnDownloadTab.addEventListener('click', async () => {
+      try {
+        const tabs = await browserApi.tabs.query({ active: true, currentWindow: true });
+        const tab = tabs && tabs[0];
+        const validUrl = validateHttpUrl(tab && tab.url);
+        if (!validUrl) {
+          showFormError('Active tab is not a downloadable http:// or https:// page.');
+          return;
+        }
+        await triggerPopupDownload({
+          url: validUrl,
+          title: (tab && tab.title) || validUrl,
+          tabId: tab && typeof tab.id === 'number' ? tab.id : null,
+        });
+      } catch {
+        showFormError('Could not inspect active tab.');
+      }
+    });
+  }
+
+  // Clear all finished downloads
+  if (btnClearDownloads) {
+    btnClearDownloads.addEventListener('click', async () => {
+      btnClearDownloads.disabled = true;
+      btnClearDownloads.textContent = 'Clearing...';
+      try {
+        await browserApi.runtime.sendMessage({ action: 'clear_downloads' });
+      } catch (err) {
+        console.warn('Failed to clear downloads:', err);
+      } finally {
+        btnClearDownloads.disabled = false;
+        btnClearDownloads.textContent = 'Clear All';
+        fetchAndRenderDownloads();
       }
     });
   }
 
   // Copy buttons
-  document.querySelectorAll('.btn-copy').forEach(btn => {
+  document.querySelectorAll('.btn-copy').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const textToCopy = btn.getAttribute('data-copy');
-      if (textToCopy) {
-        try {
-          await navigator.clipboard.writeText(textToCopy);
-          btn.textContent = 'Copied!';
-          btn.classList.add('copied');
-          setTimeout(() => {
-            btn.textContent = 'Copy';
-            btn.classList.remove('copied');
-          }, 1600);
-        } catch (e) {
-          console.error('Failed to copy text:', e);
-        }
+      if (!textToCopy) return;
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1600);
+      } catch (err) {
+        console.error('Failed to copy text:', err);
       }
     });
   });
 
-  // External Links (Open in browser tab)
-  document.querySelectorAll('.link-item').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
+  // External links
+  document.querySelectorAll('.link-item').forEach((link) => {
+    link.addEventListener('click', (ev) => {
+      ev.preventDefault();
       const url = link.getAttribute('href');
-      if (url) {
-        if (browserApi && browserApi.tabs && browserApi.tabs.create) {
-          browserApi.tabs.create({ url });
-        } else {
-          window.open(url, '_blank');
-        }
+      if (!url) return;
+      if (browserApi && browserApi.tabs && browserApi.tabs.create) {
+        browserApi.tabs.create({ url });
+      } else {
+        window.open(url, '_blank');
       }
     });
   });
 
-  // Active Downloads Monitoring
-  async function updateActiveDownloads() {
+  function createDownloadCard(dl) {
+    const item = document.createElement('div');
+    item.className = 'download-item';
+
+    const header = document.createElement('div');
+    header.className = 'download-item-header';
+
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'download-item-title';
+
+    const badgeSpan = document.createElement('span');
+    badgeSpan.className = 'download-item-badge';
+
+    header.appendChild(titleSpan);
+    header.appendChild(badgeSpan);
+
+    const progress = document.createElement('progress');
+    progress.className = 'download-progress';
+    progress.max = 100;
+
+    const footer = document.createElement('div');
+    footer.className = 'download-item-footer';
+
+    const percentSpan = document.createElement('span');
+
+    const footerRight = document.createElement('div');
+    footerRight.className = 'download-item-footer-right';
+
+    const statsSpan = document.createElement('span');
+    statsSpan.className = 'download-item-stats';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'btn-cancel-dl';
+    cancelBtn.textContent = 'Cancel';
+
+    const retryBtn = document.createElement('button');
+    retryBtn.type = 'button';
+    retryBtn.className = 'btn-retry-dl';
+    retryBtn.textContent = 'Retry';
+
+    const dismissBtn = document.createElement('button');
+    dismissBtn.type = 'button';
+    dismissBtn.className = 'btn-dismiss-dl';
+    dismissBtn.title = 'Dismiss';
+    dismissBtn.setAttribute('aria-label', 'Dismiss finished download');
+    dismissBtn.textContent = '×';
+
+    const refs = {
+      item,
+      titleSpan,
+      badgeSpan,
+      progress,
+      percentSpan,
+      statsSpan,
+      cancelBtn,
+      retryBtn,
+      dismissBtn,
+      currentDl: dl,
+    };
+
+    cancelBtn.addEventListener('click', async () => {
+      cancelBtn.disabled = true;
+      cancelBtn.textContent = '...';
+      try {
+        await browserApi.runtime.sendMessage({
+          action: 'cancel_job',
+          job_id: refs.currentDl.id,
+        });
+        fetchAndRenderDownloads();
+      } catch (err) {
+        console.warn('Failed to cancel download:', err);
+      }
+    });
+
+    retryBtn.addEventListener('click', async () => {
+      retryBtn.disabled = true;
+      await browserApi.runtime.sendMessage({
+        action: 'start_download',
+        url: refs.currentDl.url,
+        title: refs.currentDl.title,
+        mode: refs.currentDl.mode || 'default',
+        showOverlayOnActiveTab: true,
+      });
+      retryBtn.disabled = false;
+      fetchAndRenderDownloads();
+    });
+
+    dismissBtn.addEventListener('click', async () => {
+      dismissBtn.disabled = true;
+      await browserApi.runtime.sendMessage({
+        action: 'clear_downloads',
+        job_id: refs.currentDl.id,
+      });
+      fetchAndRenderDownloads();
+    });
+
+    footerRight.appendChild(statsSpan);
+    footerRight.appendChild(cancelBtn);
+    footerRight.appendChild(retryBtn);
+    footerRight.appendChild(dismissBtn);
+
+    footer.appendChild(percentSpan);
+    footer.appendChild(footerRight);
+
+    item.appendChild(header);
+    item.appendChild(progress);
+    item.appendChild(footer);
+
+    return refs;
+  }
+
+  function updateDownloadCard(refs, dl) {
+    refs.currentDl = dl;
+    const displayTitle = dl.title || dl.url || '';
+    refs.titleSpan.textContent = displayTitle;
+    refs.titleSpan.title = displayTitle;
+
+    const status = dl.status || 'starting';
+    let badgeClass = 'download-item-badge';
+    if (status === 'completed') badgeClass += ' completed';
+    else if (status === 'merging') badgeClass += ' merging';
+    else if (status === 'cancelled') badgeClass += ' cancelled';
+    else if (status === 'error') badgeClass += ' error';
+    refs.badgeSpan.className = badgeClass;
+    refs.badgeSpan.textContent = status.toUpperCase();
+
+    const pct = typeof dl.percent === 'number' ? dl.percent : status === 'completed' ? 100 : 0;
+    if (status === 'starting' || status === 'merging' || (status === 'downloading' && pct <= 0)) {
+      refs.progress.removeAttribute('value');
+    } else {
+      refs.progress.value = pct;
+    }
+
+    let progressClass = 'download-progress';
+    if (status === 'completed') progressClass += ' completed';
+    else if (status === 'error') progressClass += ' error';
+    refs.progress.className = progressClass;
+
+    refs.percentSpan.textContent =
+      status === 'merging'
+        ? 'Post-processing'
+        : typeof pct === 'number'
+          ? `${pct.toFixed(1)}%`
+          : '0.0%';
+
+    let statsText = 'Starting...';
+    if (status === 'downloading') {
+      const parts = [];
+      if (dl.speed) parts.push(dl.speed);
+      if (dl.eta) parts.push(`ETA ${dl.eta}`);
+      statsText = parts.join(' - ') || dl.size || 'Downloading...';
+    } else if (status === 'merging') {
+      statsText = 'Merging / Remuxing';
+    } else if (status === 'completed') {
+      statsText = dl.size ? `Done (${dl.size})` : 'Done';
+    } else if (status === 'cancelled') {
+      statsText = 'Cancelled';
+    } else if (status === 'error') {
+      statsText = dl.error || 'Download failed';
+    }
+    refs.statsSpan.textContent = statsText;
+    refs.statsSpan.title = statsText;
+
+    const isActive = status === 'starting' || status === 'downloading' || status === 'merging';
+    const isTerminal = status === 'completed' || status === 'cancelled' || status === 'error';
+    const canRetry = status === 'cancelled' || status === 'error';
+
+    if (isActive && refs.cancelBtn.textContent === '...' && status !== 'cancelled') {
+      refs.cancelBtn.disabled = false;
+      refs.cancelBtn.textContent = 'Cancel';
+    }
+    refs.cancelBtn.hidden = !isActive;
+    refs.retryBtn.hidden = !canRetry;
+    refs.dismissBtn.hidden = !isTerminal;
+  }
+
+  function renderDownloads(downloads) {
     if (!downloadsCard || !downloadsList) return;
-    try {
-      const res = await fetch('http://127.0.0.1:16800/downloads');
-      if (!res.ok) {
-        downloadsCard.style.display = 'none';
-        return;
-      }
-      const data = await res.json();
-      const downloads = data.downloads || [];
+    const list = Array.isArray(downloads) ? downloads : [];
 
-      // Filter finished downloads by popup retention timer
-      const visibleDownloads = downloads.filter(dl => {
-        if (dl.status === 'starting' || dl.status === 'downloading' || dl.status === 'merging') {
-          return true;
-        }
-        if (popupRetentionSeconds > 0 && typeof dl.elapsed_since_finished === 'number') {
-          return dl.elapsed_since_finished <= popupRetentionSeconds;
-        }
+    const visibleDownloads = list.filter((dl) => {
+      if (dl.status === 'starting' || dl.status === 'downloading' || dl.status === 'merging') {
         return true;
-      });
-
-      if (visibleDownloads.length === 0) {
-        downloadsCard.style.display = 'none';
-        downloadsList.textContent = '';
-        return;
       }
+      if (popupRetentionSeconds > 0 && typeof dl.elapsed_since_finished === 'number') {
+        return dl.elapsed_since_finished <= popupRetentionSeconds;
+      }
+      return true;
+    });
 
-      downloadsCard.style.display = 'flex';
-      downloadsList.textContent = '';
+    if (visibleDownloads.length === 0) {
+      downloadsCard.hidden = true;
+      cardRefsById.clear();
+      downloadsList.replaceChildren();
+      return;
+    }
 
-      visibleDownloads.forEach(dl => {
-        const item = document.createElement('div');
-        item.className = 'download-item';
+    downloadsCard.hidden = false;
+    const visibleIds = new Set(visibleDownloads.map((dl) => dl.id));
 
-        let badgeClass = 'download-item-badge';
-        let badgeText = (dl.status || 'starting').toUpperCase();
-        if (dl.status === 'completed') badgeClass += ' completed';
-        else if (dl.status === 'merging') badgeClass += ' merging';
-        else if (dl.status === 'cancelled') badgeClass += ' cancelled';
-        else if (dl.status === 'error') badgeClass += ' error';
+    for (const [id, refs] of cardRefsById.entries()) {
+      if (!visibleIds.has(id)) {
+        refs.item.remove();
+        cardRefsById.delete(id);
+      }
+    }
 
-        const percent = dl.percent || (dl.status === 'completed' ? 100 : 0);
-        const percentText = typeof percent === 'number' ? percent.toFixed(1) + '%' : '0.0%';
+    const orderedNodes = visibleDownloads.map((dl) => {
+      let refs = cardRefsById.get(dl.id);
+      if (!refs) {
+        refs = createDownloadCard(dl);
+        cardRefsById.set(dl.id, refs);
+      }
+      updateDownloadCard(refs, dl);
+      return refs.item;
+    });
 
-        let statsText = '';
-        if (dl.status === 'downloading') {
-          const parts = [];
-          if (dl.speed) parts.push(dl.speed);
-          if (dl.eta) parts.push(`ETA ${dl.eta}`);
-          statsText = parts.join(' - ') || 'Downloading...';
-        } else if (dl.status === 'merging') {
-          statsText = 'Merging / Remuxing';
-        } else if (dl.status === 'completed') {
-          statsText = dl.size ? `Done (${dl.size})` : 'Done';
-        } else if (dl.status === 'cancelled') {
-          statsText = 'Cancelled';
-        } else {
-          statsText = 'Starting...';
-        }
-
-        const canCancel = dl.status === 'starting' || dl.status === 'downloading';
-
-        // 1. Header
-        const header = document.createElement('div');
-        header.className = 'download-item-header';
-
-        const titleSpan = document.createElement('span');
-        titleSpan.className = 'download-item-title';
-        const displayTitle = dl.title || dl.url || '';
-        titleSpan.title = displayTitle;
-        titleSpan.textContent = displayTitle;
-
-        const badgeSpan = document.createElement('span');
-        badgeSpan.className = badgeClass;
-        badgeSpan.textContent = badgeText;
-
-        header.appendChild(titleSpan);
-        header.appendChild(badgeSpan);
-
-        // 2. Bar
-        const barBg = document.createElement('div');
-        barBg.className = 'download-item-bar-bg';
-
-        const barFill = document.createElement('div');
-        barFill.className = `download-item-bar-fill${dl.status === 'completed' ? ' completed' : ''}`;
-        barFill.style.width = `${percent}%`;
-        barBg.appendChild(barFill);
-
-        // 3. Footer
-        const footer = document.createElement('div');
-        footer.className = 'download-item-footer';
-
-        const percentSpan = document.createElement('span');
-        percentSpan.textContent = percentText;
-
-        const footerRight = document.createElement('div');
-        footerRight.style.display = 'flex';
-        footerRight.style.alignItems = 'center';
-        footerRight.style.gap = '6px';
-
-        const statsSpan = document.createElement('span');
-        statsSpan.textContent = statsText;
-        footerRight.appendChild(statsSpan);
-
-        if (canCancel) {
-          const cancelBtn = document.createElement('button');
-          cancelBtn.className = 'btn-cancel-dl';
-          cancelBtn.setAttribute('data-id', dl.id);
-          cancelBtn.textContent = 'Cancel';
-          cancelBtn.addEventListener('click', async () => {
-            cancelBtn.disabled = true;
-            cancelBtn.textContent = '...';
-            try {
-              await fetch('http://127.0.0.1:16800/cancel', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ job_id: dl.id })
-              });
-              updateActiveDownloads();
-            } catch (e) {
-              console.warn('Failed to cancel download:', e);
-            }
-          });
-          footerRight.appendChild(cancelBtn);
-        }
-
-        footer.appendChild(percentSpan);
-        footer.appendChild(footerRight);
-
-        item.appendChild(header);
-        item.appendChild(barBg);
-        item.appendChild(footer);
-
-        if (canCancel) {
-          const cancelBtn = item.querySelector('.btn-cancel-dl');
-          if (cancelBtn) {
-            cancelBtn.addEventListener('click', async () => {
-              cancelBtn.disabled = true;
-              cancelBtn.textContent = '...';
-              try {
-                await fetch('http://127.0.0.1:16800/cancel', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ job_id: dl.id })
-                });
-                updateActiveDownloads();
-              } catch (e) {
-                console.warn('Failed to cancel download:', e);
-              }
-            });
-          }
-        }
-
-        downloadsList.appendChild(item);
-      });
-    } catch (e) {
-      downloadsCard.style.display = 'none';
+    // Update order only when card set or sequence changes, preserving hover/focus on stable cards
+    const currentChildren = Array.from(downloadsList.children);
+    const sameOrder =
+      currentChildren.length === orderedNodes.length &&
+      currentChildren.every((el, idx) => el === orderedNodes[idx]);
+    if (!sameOrder) {
+      downloadsList.replaceChildren(...orderedNodes);
     }
   }
 
-  // Initial check
-  checkServerHealth();
-  updateActiveDownloads();
-  const pollInterval = setInterval(updateActiveDownloads, 800);
-  window.addEventListener('unload', () => clearInterval(pollInterval));
-});
+  async function fetchAndRenderDownloads() {
+    if (!downloadsCard || !downloadsList) return;
+    try {
+      const res = await fetch(`${BRIDGE_BASE}/downloads`, {
+        signal: AbortSignal.timeout(2000),
+      });
+      if (!res.ok) {
+        renderDownloads([]);
+        return;
+      }
+      const data = await res.json();
+      renderDownloads(data.downloads || []);
+      if (statusCard.classList.contains('offline')) {
+        checkServerHealth({ showSpinner: false });
+      }
+    } catch {
+      renderDownloads([]);
+      if (!statusCard.classList.contains('offline')) {
+        checkServerHealth({ showSpinner: false });
+      }
+    }
+  }
 
+  if (browserApi && browserApi.runtime && browserApi.runtime.onMessage) {
+    browserApi.runtime.onMessage.addListener((message) => {
+      if (message && message.action === 'downloads_update') {
+        renderDownloads(message.downloads || []);
+      }
+    });
+  }
+
+  // Initial checks & live refresh while popup is open
+  checkServerHealth({ showSpinner: true });
+  fetchAndRenderDownloads();
+  const pollInterval = setInterval(fetchAndRenderDownloads, 1000);
+  window.addEventListener('pagehide', () => clearInterval(pollInterval));
+});

@@ -9,10 +9,10 @@ Write-Host ""
 # 1. Terminate running bridge server process
 Write-Host "[1/3] Stopping background bridge server..." -ForegroundColor Yellow
 
-# Method A: Kill by server.py in CommandLine via WMI/CIM
+# Method A: Kill by yt-dlp-bridge server.py in CommandLine via WMI/CIM
 try {
     Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object {
-        $_.CommandLine -like "*server.py*"
+        $_.CommandLine -like "*yt-dlp-bridge*server.py*"
     } | ForEach-Object {
         Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
     }

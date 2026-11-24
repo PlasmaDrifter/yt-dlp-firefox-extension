@@ -151,10 +151,6 @@ if (-not $ScriptDir) {
 }
 
 $SourceServerPy = Join-Path $ScriptDir "bridge\server.py"
-if (-not (Test-Path $SourceServerPy)) {
-    $SourceServerPy = Join-Path $ScriptDir "server.py"
-}
-
 Copy-Item $SourceServerPy -Destination (Join-Path $InstallDir "server.py") -Force
 
 # Create silent startup launcher VBScript
@@ -171,7 +167,13 @@ Write-Host ""
 Write-Host "[3/3] Starting bridge server in background..." -ForegroundColor Yellow
 
 # Stop any running old instance
-Get-Process pythonw, python -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*yt-dlp-bridge\server.py*" } | Stop-Process -Force -ErrorAction SilentlyContinue
+try {
+    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object {
+        $_.CommandLine -like "*yt-dlp-bridge*server.py*"
+    } | ForEach-Object {
+        Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+    }
+} catch {}
 try {
     $conns = Get-NetTCPConnection -LocalPort 16800 -ErrorAction SilentlyContinue
     if ($conns) {
@@ -200,7 +202,7 @@ Write-Host "=====================================================" -ForegroundCo
 Write-Host ""
 Write-Host "Next: Install the extension in Firefox / Zen / LibreWolf / Waterfox:"
 Write-Host "- Install from AMO (Recommended): https://addons.mozilla.org/en-US/firefox/addon/download-with-yt-dlp-local/"
-Write-Host "- Or install locally from file: $ScriptDir\releases\yt-dlp-extension-v1.0.7.xpi (or .zip)"
+Write-Host "- Or install locally from file: $ScriptDir\releases\yt-dlp-extension-v1.0.8.xpi (or .zip)"
 Write-Host ""
 Write-Host "Videos will automatically download to your configured yt-dlp path (or $env:USERPROFILE\Downloads)"
 
