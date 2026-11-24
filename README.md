@@ -108,10 +108,10 @@ If you prefer installing directly from a local file without using AMO:
 ## How to Use
 
 1. Navigate to any supported video page (YouTube, Twitch, Twitter/X, Reddit, Vimeo, TikTok, etc.).
-2. **Right-click** on the video or video link.
-3. Click **"Download video with yt-dlp"** in the context menu.
+2. **Right-click** on the video or video link and click **"Download video with yt-dlp"** (or pick a mode if you enabled **Context Menu Submenu** in Preferences).
+3. Alternatively, click the toolbar icon to paste any URL directly, click **Current Tab**, choose a mode (**Best Video**, **Audio Only**, **Single Video**, or **Playlist**), and start the download.
 4. An optional in-page floating HUD card displays live download progress (percentage, speed, and ETA) right on your active tab.
-5. You can also click the toolbar icon at any time to monitor active downloads or cancel in-flight jobs.
+5. Click the toolbar icon at any time to monitor progress, cancel or retry jobs, or click the folder button in the header to open your download destination.
 6. The downloaded video will be saved directly into your configured `yt-dlp` folder (or `~/Downloads`).
 
 ---
@@ -160,7 +160,7 @@ The extension triggers your system's `yt-dlp` binary, which automatically reads 
     ```
   * To check running bridge processes in PowerShell:
     ```powershell
-    Get-Process pythonw, python | Where-Object { $_.CommandLine -like "*yt-dlp-bridge*" }
+    Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like "*yt-dlp-bridge*server.py*" }
     ```
 
 ### 2. Test the health check endpoint
