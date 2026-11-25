@@ -42,6 +42,9 @@ def test_host_and_origin_validation():
     assert server.is_allowed_origin("moz-extension://1234-5678")
     assert not server.is_allowed_origin("https://evil.example")
     assert not server.is_allowed_origin("http://127.0.0.1:8080")
+    assert not server.is_allowed_origin("moz-extension://1234\r\nSet-Cookie: evil=1")
+    assert not server.is_allowed_origin("moz-extension://1234\n")
+    assert not server.is_allowed_origin("moz-extension://1234/path")
 
 
 def test_config_destination_parsing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -184,9 +187,14 @@ def test_http_server_security_and_download_flow(tmp_path: Path, monkeypatch: pyt
         assert conn.getresponse().status == 403
         conn.close()
 
-        # 2. Reject web Origin
+        # 2. Reject web Origin and CRLF header-splitting Origin
         conn = http.client.HTTPConnection("127.0.0.1", port, timeout=3)
         conn.request("GET", "/downloads", headers={"Origin": "https://evil.example"})
+        assert conn.getresponse().status == 403
+        conn.close()
+
+        conn = http.client.HTTPConnection("127.0.0.1", port, timeout=3)
+        conn.request("GET", "/downloads", headers={"Origin": "moz-extension://abc/extra"})
         assert conn.getresponse().status == 403
         conn.close()
 

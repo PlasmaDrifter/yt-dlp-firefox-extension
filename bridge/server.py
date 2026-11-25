@@ -325,10 +325,15 @@ def is_allowed_host(host_header: str | None, port: int) -> bool:
     return normalized in allowed
 
 
+_MOZ_EXT_ORIGIN_RE = re.compile(r"moz-extension://[a-zA-Z0-9._-]+", re.IGNORECASE)
+
+
 def is_allowed_origin(origin_header: str | None) -> bool:
     if origin_header is None:
         return True
-    return origin_header.strip().lower().startswith("moz-extension://")
+    if any(ch in origin_header for ch in ("\r", "\n", "\x00")):
+        return False
+    return _MOZ_EXT_ORIGIN_RE.fullmatch(origin_header.strip()) is not None
 
 
 def validate_url(raw_url: Any) -> str | None:
@@ -589,8 +594,11 @@ class YtDlpHandler(http.server.BaseHTTPRequestHandler):
 
     def _allowed_cors_origin(self) -> str | None:
         origin = self.headers.get("Origin")
-        if origin and is_allowed_origin(origin):
-            return origin.strip()
+        if not origin or any(ch in origin for ch in ("\r", "\n", "\x00")):
+            return None
+        cleaned = origin.strip().replace("\r", "").replace("\n", "")
+        if _MOZ_EXT_ORIGIN_RE.fullmatch(cleaned):
+            return cleaned
         return None
 
     def _set_headers(self, status: int = 200, length: int | None = None) -> None:

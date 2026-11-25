@@ -37,7 +37,8 @@ function isAllowedHost(hostHeader) {
 
 function isAllowedOrigin(originHeader) {
     if (!originHeader) return true;
-    return originHeader.trim().toLowerCase().startsWith('moz-extension://');
+    if (/[\r\n\0]/.test(originHeader)) return false;
+    return /^moz-extension:\/\/[a-zA-Z0-9._-]+$/i.test(originHeader.trim());
 }
 
 function getConfiguredDestination() {
@@ -98,7 +99,8 @@ app.use((req, res, next) => {
         return res.status(403).json({ error: 'Forbidden origin' });
     }
     if (origin) {
-        res.header('Access-Control-Allow-Origin', origin);
+        const cleanOrigin = origin.trim().replace(/[\r\n\0]/g, '');
+        res.header('Access-Control-Allow-Origin', cleanOrigin);
         res.header('Vary', 'Origin');
     }
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
