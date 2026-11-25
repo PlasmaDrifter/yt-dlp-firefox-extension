@@ -19,7 +19,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-BRIDGE_VERSION = "1.1.0"
+BRIDGE_VERSION = "1.1.1"
 PORT = int(os.environ.get("YTDLP_BRIDGE_PORT", "16800"))
 HOST = "127.0.0.1"
 MAX_BODY_BYTES = 64 * 1024

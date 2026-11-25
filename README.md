@@ -88,7 +88,7 @@ Install the official signed version directly from Mozilla Add-ons:
 If you prefer installing directly from a local file without using AMO:
 1. Open your browser and navigate to `about:addons`.
 2. Click the **gear icon** at the top right of the page.
-3. Select **"Install Add-on From File..."** and choose `releases/yt-dlp-extension-v1.0.8.xpi`.
+3. Select **"Install Add-on From File..."** and choose `releases/yt-dlp-extension-v1.0.9.xpi`.
 
 > [!IMPORTANT]
 > **Signature Requirement:** Standard Firefox releases enforce mandatory add-on signing. If you install an unsigned local `.zip`/`.xpi` file directly on standard Firefox, you will see a signature verification error. To use unsigned files permanently, use **Firefox Developer Edition**, **Firefox Nightly**, **Firefox ESR**, or **LibreWolf** and disable signature checking:

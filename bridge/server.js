@@ -10,7 +10,7 @@ const path = require('path');
 const app = express();
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.YTDLP_BRIDGE_PORT) || 16800;
-const BRIDGE_VERSION = '1.1.0';
+const BRIDGE_VERSION = '1.1.1';
 const FINISHED_RETENTION_MS = 3600 * 1000;
 
 const MODE_FLAGS = {
